@@ -59,7 +59,6 @@ public:
 
 
 	void InitializeBoard();
-	void oooInitializeBoard();
 	bool InputPlayerColor();
 
 	void GetAllLegalMoves(bool isWhitePlayer);
