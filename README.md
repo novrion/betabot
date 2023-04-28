@@ -7,7 +7,7 @@ Top tier coding.
 100% man-made.
 Made in computer.
 
-Programmed in bestest landuage.
+Programmed in bestest language.
 
 Subscribe for more or less content.
 Subscribe if want better minor severe bug fixes.
