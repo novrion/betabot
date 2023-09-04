@@ -1,3 +1,3 @@
 # Beta Bot
-**Current version**: .\beta
+**Current version**: .\beta;
 **Download**: beta.zip
