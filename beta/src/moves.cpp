@@ -1,54 +1,46 @@
 #include "moves.h"
 
-using namespace std;
 
 
-
-// Add Moves
-inline void AddMove(U64 moves[100], const U64 kMove) {
-	moves[moves[99]++] = kMove;
-}
-
-
-// Generate Moves
 void GenerateMoves(const U64 kBB[13], U64 moves[100], const bool kSide) {
 
-	U64 kWBlock = W_BLOCK(kBB);
-	U64 kBBlock = B_BLOCK(kBB);
+	const U64 kWBlock = W_BLOCK(kBB);
+	const U64 kBBlock = B_BLOCK(kBB);
 
 
 	if (kSide) {
 
-		U64 pieceBitboard = kBB[1];
-		while (pieceBitboard) WPawnMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves, GET_UTILITY_EN_PASSANT(kBB[0]));
-		pieceBitboard = kBB[2];
-		while (pieceBitboard) WKnightMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves);
-		pieceBitboard = kBB[3];
-		while (pieceBitboard) WBishopMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves);
-		pieceBitboard = kBB[4];
-		while (pieceBitboard) WRookMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves);
-		pieceBitboard = kBB[5];
-		while (pieceBitboard) WQueenMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves);
-		pieceBitboard = kBB[6];
-		while (pieceBitboard) WKingMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves, kBB);
+		U64 piece_bitboard = kBB[1];
+		while (piece_bitboard) WPawnMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves, GET_UTILITY_EN_PASSANT(kBB[0]));
+		piece_bitboard = kBB[2];
+		while (piece_bitboard) WKnightMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves);
+		piece_bitboard = kBB[3];
+		while (piece_bitboard) WBishopMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves);
+		piece_bitboard = kBB[4];
+		while (piece_bitboard) WRookMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves);
+		piece_bitboard = kBB[5];
+		while (piece_bitboard) WQueenMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves);
+		piece_bitboard = kBB[6];
+		while (piece_bitboard) WKingMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves, kBB);
 	}
 
 	else {
 
-		U64 pieceBitboard = kBB[7];
-		while (pieceBitboard) BPawnMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves, GET_UTILITY_EN_PASSANT(kBB[0]));
-		pieceBitboard = kBB[8];
-		while (pieceBitboard) BKnightMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves);
-		pieceBitboard = kBB[9];
-		while (pieceBitboard) BBishopMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves);
-		pieceBitboard = kBB[10];
-		while (pieceBitboard) BRookMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves);
-		pieceBitboard = kBB[11];
-		while (pieceBitboard) BQueenMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves);
-		pieceBitboard = kBB[12];
-		while (pieceBitboard) BKingMoves(PopLsb(pieceBitboard), kWBlock, kBBlock, moves, kBB);
+		U64 piece_bitboard = kBB[7];
+		while (piece_bitboard) BPawnMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves, GET_UTILITY_EN_PASSANT(kBB[0]));
+		piece_bitboard = kBB[8];
+		while (piece_bitboard) BKnightMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves);
+		piece_bitboard = kBB[9];
+		while (piece_bitboard) BBishopMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves);
+		piece_bitboard = kBB[10];
+		while (piece_bitboard) BRookMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves);
+		piece_bitboard = kBB[11];
+		while (piece_bitboard) BQueenMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves);
+		piece_bitboard = kBB[12];
+		while (piece_bitboard) BKingMoves(PopLsb(piece_bitboard), kWBlock, kBBlock, moves, kBB);
 	}
 }
+
 void GenerateCaptures(const U64 kBB[13], U64 moves[100], const bool kSide) {
 
 	U64 kWBlock = W_BLOCK(kBB);
@@ -89,7 +81,68 @@ void GenerateCaptures(const U64 kBB[13], U64 moves[100], const bool kSide) {
 }
 
 
-// Moves
+inline void AddMove(U64 moves[100], const U64 kMove) {
+	moves[moves[99]++] = kMove;
+}
+
+inline bool CastleDiagonalInCheck(const U64 kBB[13], const U64 kWBlock, const U64 kBBlock, const int kSquare, const bool kSide) {
+
+	const int t_rank = kSquare / 8;
+	const int t_file = kSquare % 8;
+
+
+	if (kSide) {
+
+		for (int x = t_rank - 1, y = t_file - 1; x > -1 && y > -1; --x, --y) {
+
+			if (!(1ULL << (x * 8 + y) & (kWBlock | kBBlock))) continue;
+			else if (1ULL << (x * 8 + y) & (kBB[9] | kBB[11])) return false;
+			else break;
+		}
+
+		for (int x = t_rank - 1; x > -1; --x) {
+
+			if (!(1ULL << (x * 8 + t_file) & (kWBlock | kBBlock))) continue;
+			else if (1ULL << (x * 8 + t_file) & (kBB[10] | kBB[11])) return false;
+			else break;
+		}
+
+		for (int x = t_rank - 1, y = t_file + 1; x > -1 && y < 8; --x, ++y) {
+
+			if (!(1ULL << (x * 8 + y) & (kWBlock | kBBlock))) continue;
+			else if (1ULL << (x * 8 + y) & (kBB[9] | kBB[11])) return false;
+			else break;
+		}
+	}
+
+	else {
+
+		for (int x = t_rank + 1, y = t_file - 1; x < 8 && y > -1; ++x, --y) {
+
+			if (!(1ULL << (x * 8 + y) & (kWBlock | kBBlock))) continue;
+			else if (1ULL << (x * 8 + y) & (kBB[3] | kBB[5])) return false;
+			else break;
+		}
+
+		for (int x = t_rank + 1; x < 8; ++x) {
+
+			if (!(1ULL << (x * 8 + t_file) & (kWBlock | kBBlock))) continue;
+			else if (1ULL << (x * 8 + t_file) & (kBB[4] | kBB[5])) return false;
+			else break;
+		}
+
+		for (int x = t_rank + 1, y = t_file + 1; x < 8 && y < 8; ++x, ++y) {
+
+			if (!(1ULL << (x * 8 + y) & (kWBlock | kBBlock))) continue;
+			else if (1ULL << (x * 8 + y) & (kBB[3] | kBB[5])) return false;
+			else break;
+		}
+	}
+
+	return true;
+}
+
+
 inline void WPawnMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100], const int kEnPassantSquare) {
 
 	U64 bitboard = 1ULL << kSquare;
@@ -97,12 +150,29 @@ inline void WPawnMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, 
 	int rank = kSquare / 8;
 
 
+	// Promotion
 	if (rank == 1) {
 
-		if (!((bitboard >> 8) & (kWBlock | kBBlock))) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 8), 1, 0, 5, 0, 0, 0));
+		if (!((bitboard >> 8) & (kWBlock | kBBlock))) {
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 8), 1, 0, 2, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 8), 1, 0, 3, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 8), 1, 0, 4, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 8), 1, 0, 5, 0, 0, 0));
+		}
 
-		if ((bitboard >> 7 & kNotAFile) && (bitboard >> 7 & kBBlock)) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 7), 1, 1, 5, 0, 0, 0));
-		if ((bitboard >> 9 & kNotHFile) && (bitboard >> 9 & kBBlock)) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 9), 1, 1, 5, 0, 0, 0));
+		if ((bitboard >> 7 & kNotAFile) && (bitboard >> 7 & kBBlock)) {
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 7), 1, 1, 2, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 7), 1, 1, 3, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 7), 1, 1, 4, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 7), 1, 1, 5, 0, 0, 0));
+		}
+
+		if ((bitboard >> 9 & kNotHFile) && (bitboard >> 9 & kBBlock)) {
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 9), 1, 1, 2, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 9), 1, 1, 3, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 9), 1, 1, 4, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 9), 1, 1, 5, 0, 0, 0));
+		}
 	}
 
 	else {
@@ -114,7 +184,7 @@ inline void WPawnMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, 
 
 			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 8), 1, 0, 0, 0, 0, 0));
 
-			// 2 Pawn
+			// Double Pawn Move
 			if (rank == 6 && !((bitboard >> 16) & (kWBlock | kBBlock))) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 16), 1, 0, 0, 1, 0, 0));
 		}
 
@@ -129,6 +199,7 @@ inline void WPawnMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, 
 inline void WKnightMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100]) {
 
 	U64 bitboard = 1ULL << kSquare;
+
 
 	if ((bitboard >> 6 & kNotABFile) && !(bitboard >> 6 & kWBlock)) {
 		if (bitboard >> 6 & kBBlock) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 6), 2, 1, 0, 0, 0, 0));
@@ -398,76 +469,17 @@ inline void WKingMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, 
 	}
 
 
-
 	// Castle
-	bool w_short_castle = GET_UTILITY_W_SHORT_CASTLE(kBB[0]);
-	bool w_long_castle = GET_UTILITY_W_LONG_CASTLE(kBB[0]);
-
-	if (w_short_castle && !(kWCastleShortSpaceMask & (kWBlock | kBBlock)) && !(kBB[7] & kWCastleShortPawnMask) && !(kBB[8] & kWCastleShortKnightMask) && !(kBB[12] & kWCastleShortKingMask)) {
-
-		bool can_castle = true;
-
-		for (int square = 60; square < 63; ++square) {
-
-			const int t_rank = square / 8;
-			const int t_file = square % 8;
-
-			for (int x = t_rank - 1, y = t_file - 1; x > -1 && y > -1; --x, --y) {
-
-				if (1ULL << (x * 8 + y) & kWBlock) break;
-				else if (1ULL << (x * 8 + y) & (kBB[9] | kBB[11])) can_castle = false;
-				else if (1ULL << (x * 8 + y) & kBBlock) break;
-			}
-
-			for (int x = t_rank - 1; x > -1; --x) {
-
-				if (1ULL << (x * 8 + t_file) & kWBlock) break;
-				else if (1ULL << (x * 8 + t_file) & (kBB[10] | kBB[11])) can_castle = false;
-				else if (1ULL << (x * 8 + t_file) & kBBlock) break;
-
-			}
-
-			for (int x = t_rank - 1, y = t_file + 1; x > -1 && y < 8; --x, ++y) {
-
-				if (1ULL << (x * 8 + y) & kWBlock) break;
-				else if (1ULL << (x * 8 + y) & (kBB[9] | kBB[11])) can_castle = false;
-				else if (1ULL << (x * 8 + y) & kBBlock) break;
-			}
+	if (GET_UTILITY_W_LONG_CASTLE(kBB[0]) && (kBB[4] & (1ULL << 56)) && !(kWCastleLongSpaceMask & (kWBlock | kBBlock)) && !(kBB[7] & kWCastleLongPawnMask) && !(kBB[8] & kWCastleLongKnightMask) && !(kBB[12] & kWCastleLongKingMask)) {
+		if (CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 60, true) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 59, true) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 58, true) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 57, true)) {
+			AddMove(moves, ENCODE_MOVE(60, 58, 6, 0, 0, 0, 0, 1));
 		}
-
-		if (can_castle) AddMove(moves, ENCODE_MOVE(60, 62, 6, 0, 0, 0, 0, 1));
 	}
 
-	if (w_long_castle && !(kWCastleLongSpaceMask & (kWBlock | kBBlock)) && !(kBB[7] & kWCastleLongPawnMask) && !(kBB[8] & kWCastleLongKnightMask) && !(kBB[12] & kWCastleLongKingMask)) {
-
-		for (int square = 60; square > 56; --square) {
-
-			const int t_rank = square / 8;
-			const int t_file = square % 8;
-
-			for (int x = t_rank - 1, y = t_file - 1; x > -1 && y > -1; --x, --y) {
-
-				if (1ULL << (x * 8 + y) & kWBlock) break;
-				else if (1ULL << (x * 8 + y) & (kBB[9] | kBB[11])) return;
-				else if (1ULL << (x * 8 + y) & kBBlock) break;
-			}
-
-			for (int x = t_rank - 1; x > -1; --x) {
-
-				if (1ULL << (x * 8 + t_file) & kWBlock) break;
-				else if (1ULL << (x * 8 + t_file) & (kBB[10] | kBB[11])) return;
-				else if (1ULL << (x * 8 + t_file) & kBBlock) break;
-			}
-
-			for (int x = t_rank - 1, y = t_file + 1; x > -1 && y < 8; --x, ++y) {
-
-				if (1ULL << (x * 8 + y) & kWBlock) break;
-				else if (1ULL << (x * 8 + y) & (kBB[9] | kBB[11])) return;
-				else if (1ULL << (x * 8 + y) & kBBlock) break;
-			}
+	if (GET_UTILITY_W_SHORT_CASTLE(kBB[0]) && (kBB[4] & (1ULL << 63)) && !(kWCastleShortSpaceMask & (kWBlock | kBBlock)) && !(kBB[7] & kWCastleShortPawnMask) && !(kBB[8] & kWCastleShortKnightMask) && !(kBB[12] & kWCastleShortKingMask)) {
+		if (CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 60, true) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 61, true) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 62, true)) {
+			AddMove(moves, ENCODE_MOVE(60, 62, 6, 0, 0, 0, 0, 1));
 		}
-
-		AddMove(moves, ENCODE_MOVE(60, 58, 6, 0, 0, 0, 0, 1));
 	}
 }
 
@@ -478,11 +490,29 @@ inline void BPawnMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, 
 	int rank = kSquare / 8;
 
 
+	// Promotion
 	if (rank == 6) {
-		if (!((bitboard << 8) & (kWBlock | kBBlock))) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 8), 7, 0, 11, 0, 0, 0));
 
-		if ((bitboard << 7 & kNotHFile) && (bitboard << 7 & kWBlock)) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 7), 7, 1, 11, 0, 0, 0));
-		if ((bitboard << 9 & kNotAFile) && (bitboard << 9 & kWBlock)) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 9), 7, 1, 11, 0, 0, 0));
+		if (!((bitboard << 8) & (kWBlock | kBBlock))) {
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 8), 7, 0, 8, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 8), 7, 0, 9, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 8), 7, 0, 10, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 8), 7, 0, 11, 0, 0, 0));
+		}
+
+		if ((bitboard << 7 & kNotHFile) && (bitboard << 7 & kWBlock)) {
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 7), 7, 1, 8, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 7), 7, 1, 9, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 7), 7, 1, 10, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 7), 7, 1, 11, 0, 0, 0));
+		}
+
+		if ((bitboard << 9 & kNotAFile) && (bitboard << 9 & kWBlock)) {
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 9), 7, 1, 8, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 9), 7, 1, 9, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 9), 7, 1, 10, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 9), 7, 1, 11, 0, 0, 0));
+		}
 	}
 
 	else {
@@ -494,7 +524,7 @@ inline void BPawnMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, 
 
 			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 8), 7, 0, 0, 0, 0, 0));
 
-			// 2 Pawn
+			// Double Pawn Move
 			if (rank == 1 && !((bitboard << 16) & (kWBlock | kBBlock))) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 16), 7, 0, 0, 1, 0, 0));
 		}
 
@@ -784,76 +814,17 @@ inline void BKingMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, 
 	}
 
 
-
 	// Castle
-	bool b_short_castle = GET_UTILITY_B_SHORT_CASTLE(kBB[0]);
-	bool b_long_castle = GET_UTILITY_B_LONG_CASTLE(kBB[0]);
-
-	if (b_short_castle && !(kBCastleShortSpaceMask & (kWBlock | kBBlock)) && !(kBB[1] & kBCastleShortPawnMask) && !(kBB[2] & kBCastleShortKnightMask) && !(kBB[6] & kWCastleShortKingMask)) {
-
-		bool can_castle = true;
-
-		for (int square = 4; square < 7; ++square) {
-
-			const int t_rank = square / 8;
-			const int t_file = square % 8;
-
-			for (int x = t_rank + 1, y = t_file - 1; x < 8 && y > -1; ++x, --y) {
-
-				if (1ULL << (x * 8 + y) & kBBlock) break;
-				else if (1ULL << (x * 8 + y) & (kBB[3] | kBB[5])) can_castle = false;
-				else if (1ULL << (x * 8 + y) & kWBlock) break;
-			}
-
-			for (int x = t_rank + 1; x < 8; ++x) {
-
-				if (1ULL << (x * 8 + t_file) & kBBlock) break;
-				else if (1ULL << (x * 8 + t_file) & (kBB[4] | kBB[5])) can_castle = false;
-				else if (1ULL << (x * 8 + t_file) & kWBlock) break;
-
-			}
-
-			for (int x = t_rank + 1, y = t_file + 1; x < 8 && y < 8; ++x, ++y) {
-
-				if (1ULL << (x * 8 + y) & kBBlock) break;
-				else if (1ULL << (x * 8 + y) & (kBB[3] | kBB[5])) can_castle = false;
-				else if (1ULL << (x * 8 + y) & kWBlock) break;
-			}
+	if (GET_UTILITY_B_LONG_CASTLE(kBB[0]) && (kBB[10] & 1ULL) && !(kBCastleLongSpaceMask & (kWBlock | kBBlock)) && !(kBB[1] & kBCastleLongPawnMask) && !(kBB[2] & kBCastleLongKnightMask) && !(kBB[6] & kBCastleLongKingMask)) {
+		if (CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 4, false) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 3, false) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 2, false) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 1, false)) {
+			AddMove(moves, ENCODE_MOVE(4, 2, 12, 0, 0, 0, 0, 1));
 		}
-
-		if (can_castle) AddMove(moves, ENCODE_MOVE(4, 6, 12, 0, 0, 0, 0, 1));
 	}
 
-	if (b_long_castle && !(kBCastleLongSpaceMask & (kWBlock | kBBlock)) && !(kBB[1] & kBCastleLongPawnMask) && !(kBB[2] & kBCastleLongKnightMask) && !(kBB[6] & kWCastleLongKingMask)) {
-
-		for (int square = 4; square > 0; --square) {
-
-			const int t_rank = square / 8;
-			const int t_file = square % 8;
-
-			for (int x = t_rank + 1, y = t_file - 1; x < 8 && y > -1; ++x, --y) {
-
-				if (1ULL << (x * 8 + y) & kBBlock) break;
-				else if (1ULL << (x * 8 + y) & (kBB[3] | kBB[5])) return;
-				else if (1ULL << (x * 8 + y) & kWBlock) break;
-			}
-
-			for (int x = t_rank + 1; x < 8; ++x) {
-
-				if (1ULL << (x * 8 + t_file) & kBBlock) break;
-				else if (1ULL << (x * 8 + t_file) & (kBB[4] | kBB[5])) return;
-				else if (1ULL << (x * 8 + t_file) & kWBlock) break;
-			}
-
-			for (int x = t_rank + 1, y = t_file + 1; x < 8 && y < 8; ++x, ++y) {
-
-				if (1ULL << (x * 8 + y) & kBBlock) break;
-				else if (1ULL << (x * 8 + y) & (kBB[3] | kBB[5])) return;
-				else if (1ULL << (x * 8 + y) & kWBlock) break;
-			}
+	if (GET_UTILITY_B_SHORT_CASTLE(kBB[0]) && (kBB[10] & (1ULL << 7)) && !(kBCastleShortSpaceMask & (kWBlock | kBBlock)) && !(kBB[1] & kBCastleShortPawnMask) && !(kBB[2] & kBCastleShortKnightMask) && !(kBB[6] & kBCastleShortKingMask)) {
+		if (CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 4, false) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 5, false) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 6, false)) {
+			AddMove(moves, ENCODE_MOVE(4, 6, 12, 0, 0, 0, 0, 1));
 		}
-
-		AddMove(moves, ENCODE_MOVE(4, 2, 12, 0, 0, 0, 0, 1));
 	}
 }
 

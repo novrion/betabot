@@ -46,9 +46,7 @@ void PlayBot() {
 	double max_search_time;
 	InitAll(b, bot_side, max_search_time);
 
-	//InputFen(b);
-	//string a = "r1b1P1kr/pppn3p/7Q/4q3/8/P3BPK1/6P1/7R b  -";
-	//ParseFen(b, a);
+	InputFen(b);
 
 	// Initialize Saves
 	for (int i = 0; i < 400; ++i) {
@@ -56,13 +54,25 @@ void PlayBot() {
 		evaluations[i] = 0;
 		moves[i] = 0;
 
-		if (bot_side) {
-			if (i % 2 == 1) turns[i] = true;
-			else turns[i] = false;
+		if (GET_UTILITY_SIDE(b.bb[0])) {
+			if (bot_side) {
+				if (i % 2 == 1) turns[i] = true;
+				else turns[i] = false;
+			}
+			else {
+				if (i % 2 == 0) turns[i] = true;
+				else turns[i] = false;
+			}
 		}
 		else {
-			if (i % 2 == 0) turns[i] = true;
-			else turns[i] = false;
+			if (!bot_side) {
+				if (i % 2 == 1) turns[i] = true;
+				else turns[i] = false;
+			}
+			else {
+				if (i % 2 == 0) turns[i] = true;
+				else turns[i] = false;
+			}
 		}
 	}
 
@@ -277,9 +287,10 @@ void InputFen(Board& b) {
 
 	string fen;
 	cout << "FEN: ";
+	fflush(stdin);
 	getline(cin, fen);
 
-	if (fen != "x" && 0) {
+	if (fen != "x") {
 
 		for (int bitboard = 0; bitboard < 13; ++bitboard) {
 			b.bb[bitboard] = 0ULL;
@@ -399,7 +410,6 @@ bool VerifyMove(Board& b, const U64 kMove, const bool kSide) {
 	GenerateMoves(b.bb, moves, kSide);
 
 	for (int i = 0; i < moves[99]; ++i) {
-
 		if (moves[i] == kMove) return true;
 	}
 

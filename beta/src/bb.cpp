@@ -1,7 +1,5 @@
 #include "bb.h"
 
-using namespace std;
-
 
 
 void MakeMove(U64 bb[13], const U64 kMove, const bool kSide) {
@@ -10,7 +8,7 @@ void MakeMove(U64 bb[13], const U64 kMove, const bool kSide) {
 	int target = GET_MOVE_TARGET(kMove);
 	int piece = GET_MOVE_PIECE(kMove);
 
-	int _2pawn = GET_MOVE_2_PAWN(kMove);
+	int double_pawn = GET_MOVE_2_PAWN(kMove);
 	int en_passant = GET_MOVE_EN_PASSANT(kMove);
 	int castle = GET_MOVE_CASTLE(kMove);
 
@@ -38,7 +36,6 @@ void MakeMove(U64 bb[13], const U64 kMove, const bool kSide) {
 	else if (piece == 12) bb[0] &= kBBothCastleMask;
 
 
-
 	if (capture) {
 
 		POP_BIT(bb[piece], source);
@@ -46,113 +43,70 @@ void MakeMove(U64 bb[13], const U64 kMove, const bool kSide) {
 		if (promotion) SET_BIT(bb[promotion], target);
 		else SET_BIT(bb[piece], target);
 
-
-		if (kSide) {
-			for (U64 i = 7; i < 13; ++i) {
-				if (bb[i] & (1ULL << target)) {
-					POP_BIT(bb[i], target);
-					break;
-				}
-			}
-		}
-		else {
-			for (U64 i = 1; i < 7; ++i) {
-				if (bb[i] & (1ULL << target)) {
-					POP_BIT(bb[i], target);
-					break;
-				}
-			}
-		}
+		POP_BIT(bb[capture], target);
 	}
 
 	else if (castle) {
 
-		if (kSide) {
+		if (target == 58) {
 
 			POP_BIT(bb[6], 60);
+			SET_BIT(bb[6], 58);
 
-			if (target > source) {
+			POP_BIT(bb[4], 56);
+			SET_BIT(bb[4], 59);
+		}
 
-				bb[0] &= kWBothCastleMask;
+		else if (target == 62) {
 
+			POP_BIT(bb[6], 60);
+			SET_BIT(bb[6], 62);
 
-				SET_BIT(bb[6], 62);
-
-				POP_BIT(bb[4], 63);
-				SET_BIT(bb[4], 61);
-			}
-
-			else {
-
-				bb[0] &= kWBothCastleMask;
+			POP_BIT(bb[4], 63);
+			SET_BIT(bb[4], 61);
+		}
 
 
-				SET_BIT(bb[6], 58);
+		else if (target == 2) {
 
-				POP_BIT(bb[4], 56);
-				SET_BIT(bb[4], 59);
-			}
+			POP_BIT(bb[12], 4);
+			SET_BIT(bb[12], 2);
+
+			POP_BIT(bb[10], 0);
+			SET_BIT(bb[10], 3);
 		}
 
 		else {
 
 			POP_BIT(bb[12], 4);
+			SET_BIT(bb[12], 6);
 
-			if (target > source) {
-
-				bb[0] &= kBBothCastleMask;
-
-
-				SET_BIT(bb[12], 6);
-
-				POP_BIT(bb[10], 7);
-				SET_BIT(bb[10], 5);
-			}
-
-			else {
-
-				bb[0] &= kBBothCastleMask;
-
-
-				SET_BIT(bb[12], 2);
-
-				POP_BIT(bb[10], 0);
-				SET_BIT(bb[10], 3);
-			}
+			POP_BIT(bb[10], 7);
+			SET_BIT(bb[10], 5);
 		}
-	}
-
-	else if (en_passant) {
-
-		if (kSide) {
-
-			POP_BIT(bb[1], source);
-			SET_BIT(bb[1], target);
-
-			POP_BIT(bb[7], target + 8);
-		}
-
-		else {
-
-			POP_BIT(bb[7], source);
-			SET_BIT(bb[7], target);
-
-			POP_BIT(bb[1], target - 8);
-		}
-	}
-
-	else if (_2pawn) {
-
-		POP_BIT(bb[piece], source);
-		SET_BIT(bb[piece], target);
-
-		bb[0] |= target;
 	}
 
 	else if (promotion) {
 
 		POP_BIT(bb[piece], source);
 		SET_BIT(bb[promotion], target);
+	}
+
+	else if (en_passant) {
+
+		POP_BIT(bb[piece], source);
+		SET_BIT(bb[piece], target);
+
+		if (kSide) POP_BIT(bb[7], target + 8);
+		else POP_BIT(bb[1], target - 8);
+	}
+
+	else if (double_pawn) {
+
+		POP_BIT(bb[piece], source);
+		SET_BIT(bb[piece], target);
+
+		bb[0] |= target;
 	}
 
 	else {
@@ -181,7 +135,6 @@ int PopLsb(U64& b) {
 }
 
 
-// Initialization
 void InitAll(Board& b, bool& kSide, double& max_search_time) {
 
 	// (utility)
@@ -214,8 +167,8 @@ bool InitSide() {
 
 	char ch;
 
-	cout << "W/B: ";
-	cin >> ch;
+	std::cout << "W/B: ";
+	std::cin >> ch;
 
 	return ((ch == 'W' || ch == 'w') ? true : false);
 }
@@ -223,8 +176,8 @@ double InitMaxSearchTime() {
 
 	double max_search_time;
 
-	cout << "Search Time: ";
-	cin >> max_search_time;
+	std::cout << "Search Time: ";
+	std::cin >> max_search_time;
 
 	return max_search_time;
 }

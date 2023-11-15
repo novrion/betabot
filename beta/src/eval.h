@@ -4,7 +4,6 @@
 #include "bb.h"
 
 
-// Constants
 const int kMaterialScore[13] = { 0, 1000, 3000, 3000, 5000, 9000, 100000, -1000, -3000, -3000, -5000, -9000, -100000 };
 const int kPositionScore[13][64] = {
 
@@ -182,7 +181,6 @@ const int kPositionScore[13][64] = {
 
 
 
-// Evaluation
 int Evaluate(const U64 kBB[13]);
 
 inline int MaterialScore(const U64 kBB[13]);

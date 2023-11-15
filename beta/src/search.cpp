@@ -156,12 +156,13 @@ inline bool InCheck(Board& b, const bool kSide) {
     return false;
 }
 
-inline void GetMoveTargets(Board& b, U64 moves[100]) {
+inline void GetMoveTargets(Board& b, U64 moves[100], const bool kSide) {
 
-    if (GET_MOVE_PIECE(moves[0]) < 7) {
+    if (kSide) {
 
         for (int i = 0; i < moves[99]; ++i) {
-
+            
+            if (!GET_MOVE_CAPTURE(moves[i])) continue;
             int target = GET_MOVE_TARGET(moves[i]);
 
             for (int j = 7; j < 13; ++j) {
@@ -180,7 +181,8 @@ inline void GetMoveTargets(Board& b, U64 moves[100]) {
     else {
 
         for (int i = 0; i < moves[99]; ++i) {
-
+            
+            if (!GET_MOVE_CAPTURE(moves[i])) continue;
             int target = GET_MOVE_TARGET(moves[i]);
 
             for (int j = 1; j < 7; ++j) {
@@ -197,14 +199,7 @@ inline void GetMoveTargets(Board& b, U64 moves[100]) {
     }
 }
 
-inline void OrderMoves(Board& b, U64 moves[100]) {
 
-    sort(moves, moves + moves[99], [](const U64 a, const U64 b) {return (GET_MOVE_CAPTURE(a)) > (GET_MOVE_CAPTURE(b)); });
-    GetMoveTargets(b, moves);
-
-    sort(moves, moves + moves[99], \
-        [](const U64 a, const U64 b) {return kMVVLVA[GET_MOVE_PIECE(a) - 1][GET_MOVE_CAPTURE(a) - 1] > kMVVLVA[GET_MOVE_PIECE(b) - 1][GET_MOVE_CAPTURE(b) - 1]; });
-}
 
 
 
@@ -230,7 +225,6 @@ void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& 
             move_out = search_data.second;
 
 
-            // Interface
             cout << depth << " ";
 
             SetConsoleTextAttribute(hConsole, 14);
@@ -264,11 +258,8 @@ inline pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSi
     moves[99] = 0;
 
     GenerateMoves(b.bb, moves, kSide);
-
-    sort(moves, moves + moves[99], [](const U64 a, const U64 b) {return (GET_MOVE_CAPTURE(a)) > (GET_MOVE_CAPTURE(b)); });
-    //GetMoveTargets(b, moves);
-    //sort(moves, moves + moves[99], \
-    []( const U64 a, const U64 b ) {return kMVVLVA[GET_MOVE_PIECE(a) - 1][GET_MOVE_CAPTURE(a) - 1] > kMVVLVA[GET_MOVE_PIECE(b) - 1][GET_MOVE_CAPTURE(b) - 1]; } );
+    GetMoveTargets(b, moves, kSide);
+	sort(moves, moves + moves[99], [](const U64 c, const U64 d) {return kMVVLVA[GET_MOVE_PIECE(c)][GET_MOVE_CAPTURE(c)] > kMVVLVA[GET_MOVE_PIECE(d)][GET_MOVE_CAPTURE(d)]; });
 
 
     Board b_copy;
@@ -295,7 +286,7 @@ inline pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSi
 
 inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int beta) {
 
-    if (kDepth == 0) return Quiescence(b, 4, kSide, alpha, beta);
+    if (!kDepth) return Quiescence(b, 4, kSide, alpha, beta);
 
     // Null Move Heuristic
     if (kDepth >= 3 && !end_game && !InCheck(b, kSide)) {
@@ -309,11 +300,8 @@ inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int 
     moves[99] = 0;
 
     GenerateMoves(b.bb, moves, kSide);
-
-    sort(moves, moves + moves[99], [](const U64 a, const U64 b) {return (GET_MOVE_CAPTURE(a)) > (GET_MOVE_CAPTURE(b)); });
-    //GetMoveTargets(b, moves);
-    //sort(moves, moves + moves[99], \
-    []( const U64 a, const U64 b ) {return kMVVLVA[GET_MOVE_PIECE(a) - 1][GET_MOVE_CAPTURE(a) - 1] > kMVVLVA[GET_MOVE_PIECE(b) - 1][GET_MOVE_CAPTURE(b) - 1]; } );
+    GetMoveTargets(b, moves, kSide);
+	sort(moves, moves + moves[99], [](const U64 c, const U64 d) {return kMVVLVA[GET_MOVE_PIECE(c)][GET_MOVE_CAPTURE(c)] > kMVVLVA[GET_MOVE_PIECE(d)][GET_MOVE_CAPTURE(d)]; });
 
 
     Board b_copy;
@@ -351,10 +339,8 @@ inline int Quiescence(Board& b, const int kDepth, const bool kSide, int alpha, i
     moves[99] = 0;
 
     GenerateCaptures(b.bb, moves, kSide);
-
-    //GetMoveTargets(b, moves);
-    //sort(moves, moves + moves[99], \
-    []( const U64 a, const U64 b ) {return kMVVLVA[GET_MOVE_PIECE(a) - 1][GET_MOVE_CAPTURE(a) - 1] > kMVVLVA[GET_MOVE_PIECE(b) - 1][GET_MOVE_CAPTURE(b) - 1]; } );
+    GetMoveTargets(b, moves, kSide);
+	sort(moves, moves + moves[99], [](const U64 c, const U64 d) {return kMVVLVA[GET_MOVE_PIECE(c)][GET_MOVE_CAPTURE(c)] > kMVVLVA[GET_MOVE_PIECE(d)][GET_MOVE_CAPTURE(d)]; });
 
 
     Board b_copy;

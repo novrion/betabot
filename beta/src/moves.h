@@ -4,7 +4,6 @@
 #include "bb.h"
 
 
-// Constants
 const U64 kNotAFile = 18374403900871474942ULL;
 const U64 kNotHFile = 9187201950435737471ULL;
 const U64 kNotABFile = 18229723555195321596ULL;
@@ -34,14 +33,11 @@ const U64 kBCastleLongKingMask = 1536ULL;
 
 
 
-// Add Move
-inline void AddMove(U64 moves[100], const U64 kMove);
-
-
-// Move Generation
 void GenerateMoves(const U64 kBB[13], U64 moves[100], const bool kSide);
 void GenerateCaptures(const U64 kBB[13], U64 moves[100], const bool kSide);
 
+inline void AddMove(U64 moves[100], const U64 kMove);
+inline bool CastleDiagonalInCheck(const U64 kBB[13], const U64 kWBlock, const U64 kBBlock, const int kSquare, const bool kSide);
 
 inline void WPawnMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100], const int kEnPassantSquare);
 inline void WKnightMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100]);
