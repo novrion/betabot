@@ -54,7 +54,7 @@ void PlayBot() {
 		evaluations[i] = 0;
 		moves[i] = 0;
 
-		if (GET_UTILITY_SIDE(b.bb[0])) {
+		if (!GET_UTILITY_SIDE(b.bb[0])) {
 			if (bot_side) {
 				if (i % 2 == 1) turns[i] = true;
 				else turns[i] = false;
