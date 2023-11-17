@@ -26,8 +26,8 @@ const HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 #define ENCODE_MOVE(source, target, piece, capture, promotion, _2pawn, en_passant, castle) \
 (source) | (target << 6) | (piece << 12) | (_2pawn << 16) | (en_passant << 17) | (castle << 18) | (promotion << 19) | (capture << 23) \
 
-//#define RESET_MOVE_CAPTURE(move) (move &= 18446744073701163007ULL)
-#define RESET_MOVE_CAPTURE(move) (move &= 8388607ULL)
+#define RESET_MOVE_CAPTURE(move) (move &= 18446744073701163007ULL)
+//#define RESET_MOVE_CAPTURE(move) (move &= 8388607ULL)
 #define SET_MOVE_CAPTURE(move, piece) (move |= piece << 23)
 
 // Decode Move

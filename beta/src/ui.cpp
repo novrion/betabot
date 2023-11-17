@@ -32,9 +32,10 @@ map<char, int> bitboard_index = {
 
 // Saves
 Board boards[400];
-int evaluations[400];
-U64 moves[400];
-bool turns[400];
+int evaluations[400] = {};
+U64 moves[400] = {};
+bool side[400];
+bool player_turn[400];
 
 
 
@@ -42,38 +43,24 @@ void PlayBot() {
 
 	// Initialize Board && Side
 	Board b;
-	bool bot_side;
+	bool player_side;
 	double max_search_time;
-	InitAll(b, bot_side, max_search_time);
+	InitAll(b, player_side, max_search_time);
 
 	InputFen(b);
+	bool raw_side = GET_UTILITY_SIDE(b.bb[0]);
+
 
 	// Initialize Saves
-	for (int i = 0; i < 400; ++i) {
+	if (raw_side) side[1] = true;
+	else side[1] = false;
 
-		evaluations[i] = 0;
-		moves[i] = 0;
+	if (player_side && side[1] || !player_side && !side[1]) player_turn[1] = true;
+	else player_turn[1] = false;
 
-		if (!GET_UTILITY_SIDE(b.bb[0])) {
-			if (bot_side) {
-				if (i % 2 == 1) turns[i] = true;
-				else turns[i] = false;
-			}
-			else {
-				if (i % 2 == 0) turns[i] = true;
-				else turns[i] = false;
-			}
-		}
-		else {
-			if (!bot_side) {
-				if (i % 2 == 1) turns[i] = true;
-				else turns[i] = false;
-			}
-			else {
-				if (i % 2 == 0) turns[i] = true;
-				else turns[i] = false;
-			}
-		}
+	for (int i = 2; i < 400; ++i) {
+		side[i] = !side[i - 1];
+		player_turn[i] = !player_turn[i - 1];
 	}
 
 	// Initialize Other Variables
@@ -87,13 +74,12 @@ void PlayBot() {
 	while (true) {
 
 		if (back) PrintState(boards[ply - 1], evaluations[ply - 1], moves[ply - 1], ply - 1);
-
 		back = false;
 
 
-		if (turns[ply]) {
+		if (!player_turn[ply]) {
 
-			BotMove(b, evaluation, move, bot_side, max_search_time);
+			BotMove(b, evaluation, move, side[ply], max_search_time);
 			SaveState(ply, b, evaluation, move);
 
 			PrintState(b, evaluation, move, ply);
@@ -101,7 +87,7 @@ void PlayBot() {
 
 		else {
 
-			UserMove(ply, b, evaluation, move, !bot_side, back);
+			UserMove(ply, b, evaluation, move, side[ply], back);
 			SaveState(ply, b, evaluation, move);
 
 			system("cls");
@@ -280,7 +266,8 @@ pair<int, int> UserInputMove() {
 	cin >> to;
 
 	cout << "\n";
-
+	
+	if (from.size() != 2 || to.size() != 2 || file_index.find(from[0]) == file_index.end() || file_index.find(to[0]) == file_index.end() || from[1] < 48 || from[1] > 57 || to[1] < 48 || to[1] > 57) return {-1, -1};
 	return { StringToSquare(from), StringToSquare(to) };
 }
 void InputFen(Board& b) {
@@ -391,7 +378,7 @@ void PrintState(Board& b, const int kEval, const U64 kNextMove, const int kPly) 
 
 	// Print State
 	cout << "\nFEN: ";
-	PrintFen(b, turns[kPly + 1]);
+	PrintFen(b, player_turn[kPly + 1]);
 	cout << "\n";
 
 	// cout << "\nState: ";
@@ -441,7 +428,7 @@ void ParseFen(Board& b, string& fen) {
 		}
 
 		else if (stage == 1) {
-			fen[++i] == 'w' ? b.bb[0] |= 1ULL << 10 : 0;
+			fen[++i] == 'w' ? b.bb[0] |= 1ULL << 10 : b.bb[0] &= ~(1ULL << 10);
 		}
 
 		else if (stage == 2) {

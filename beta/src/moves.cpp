@@ -836,9 +836,22 @@ inline void WPawnCaptures(const int kSquare, const U64 kWBlock, const U64 kBBloc
 	int rank = kSquare / 8;
 
 
+	// Promotion
 	if (rank == 1) {
-		if ((bitboard >> 7 & kNotAFile) && (bitboard >> 7 & kBBlock)) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 7), 1, 1, 5, 0, 0, 0));
-		if ((bitboard >> 9 & kNotHFile) && (bitboard >> 9 & kBBlock)) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 9), 1, 1, 5, 0, 0, 0));
+
+		if ((bitboard >> 7 & kNotAFile) && (bitboard >> 7 & kBBlock)) {
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 7), 1, 1, 2, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 7), 1, 1, 3, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 7), 1, 1, 4, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 7), 1, 1, 5, 0, 0, 0));
+		}
+
+		if ((bitboard >> 9 & kNotHFile) && (bitboard >> 9 & kBBlock)) {
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 9), 1, 1, 2, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 9), 1, 1, 3, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 9), 1, 1, 4, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare - 9), 1, 1, 5, 0, 0, 0));
+		}
 	}
 
 	else {
@@ -869,8 +882,6 @@ inline void WKnightCaptures(const int kSquare, const U64 kWBlock, const U64 kBBl
 	if (bitboard << 17 & kNotAFile & kBBlock) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 17), 2, 1, 0, 0, 0, 0));
 }
 inline void WBishopCaptures(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100]) {
-
-	U64 bitboard = 1ULL << kSquare;
 
 	int t_rank = kSquare / 8;
 	int t_file = kSquare % 8;
@@ -911,11 +922,8 @@ inline void WBishopCaptures(const int kSquare, const U64 kWBlock, const U64 kBBl
 			break;
 		}
 	}
-
 }
 inline void WRookCaptures(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100]) {
-
-	U64 bitboard = 1ULL << kSquare;
 
 	int t_rank = kSquare / 8;
 	int t_file = kSquare % 8;
@@ -958,8 +966,6 @@ inline void WRookCaptures(const int kSquare, const U64 kWBlock, const U64 kBBloc
 	}
 }
 inline void WQueenCaptures(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100]) {
-
-	U64 bitboard = 1ULL << kSquare;
 
 	int t_rank = kSquare / 8;
 	int t_file = kSquare % 8;
@@ -1063,9 +1069,22 @@ inline void BPawnCaptures(const int kSquare, const U64 kWBlock, const U64 kBBloc
 	int rank = kSquare / 8;
 
 
+	// Promotion
 	if (rank == 6) {
-		if ((bitboard << 7 & kNotHFile) && (bitboard << 7 & kWBlock)) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 7), 7, 1, 11, 0, 0, 0));
-		if ((bitboard << 9 & kNotAFile) && (bitboard << 9 & kWBlock)) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 9), 7, 1, 11, 0, 0, 0));
+
+		if ((bitboard << 7 & kNotHFile) && (bitboard << 7 & kWBlock)) {
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 7), 7, 1, 8, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 7), 7, 1, 9, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 7), 7, 1, 10, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 7), 7, 1, 11, 0, 0, 0));
+		}
+
+		if ((bitboard << 9 & kNotAFile) && (bitboard << 9 & kWBlock)) {
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 9), 7, 1, 8, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 9), 7, 1, 9, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 9), 7, 1, 10, 0, 0, 0));
+			AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 9), 7, 1, 11, 0, 0, 0));
+		}
 	}
 
 	else {
@@ -1096,8 +1115,6 @@ inline void BKnightCaptures(const int kSquare, const U64 kWBlock, const U64 kBBl
 	if (bitboard << 17 & kNotAFile & kWBlock) AddMove(moves, ENCODE_MOVE(kSquare, (kSquare + 17), 8, 1, 0, 0, 0, 0));
 }
 inline void BBishopCaptures(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100]) {
-
-	U64 bitboard = 1ULL << kSquare;
 
 	int t_rank = kSquare / 8;
 	int t_file = kSquare % 8;
@@ -1141,8 +1158,6 @@ inline void BBishopCaptures(const int kSquare, const U64 kWBlock, const U64 kBBl
 }
 inline void BRookCaptures(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100]) {
 
-	U64 bitboard = 1ULL << kSquare;
-
 	int t_rank = kSquare / 8;
 	int t_file = kSquare % 8;
 
@@ -1184,8 +1199,6 @@ inline void BRookCaptures(const int kSquare, const U64 kWBlock, const U64 kBBloc
 	}
 }
 inline void BQueenCaptures(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100]) {
-
-	U64 bitboard = 1ULL << kSquare;
 
 	int t_rank = kSquare / 8;
 	int t_file = kSquare % 8;

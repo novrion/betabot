@@ -139,6 +139,7 @@ void InitAll(Board& b, bool& kSide, double& max_search_time) {
 
 	// (utility)
 	b.bb[0] = 960ULL;
+	b.bb[0] |= 1ULL << 10;
 
 	// (white) Pawn, Knight, Bishop, Rook, Queen, King
 	b.bb[1] = 71776119061217280ULL;
@@ -157,7 +158,6 @@ void InitAll(Board& b, bool& kSide, double& max_search_time) {
 	b.bb[12] = 16ULL;
 
 
-
 	b.side = InitSide();
 	kSide = b.side;
 
@@ -167,7 +167,7 @@ bool InitSide() {
 
 	char ch;
 
-	std::cout << "W/B: ";
+	std::cout << "Player Side W/B: ";
 	std::cin >> ch;
 
 	return ((ch == 'W' || ch == 'w') ? true : false);
@@ -176,7 +176,7 @@ double InitMaxSearchTime() {
 
 	double max_search_time;
 
-	std::cout << "Search Time: ";
+	std::cout << "Max Search Time (s): ";
 	std::cin >> max_search_time;
 
 	return max_search_time;
