@@ -106,6 +106,8 @@ void UserMove(int& ply, Board& b, U64& move, const bool kSide, bool& back) {
 
 	while (true) {
 
+		std::cout << "Write 'help' for the command list\n";
+
 		std::string user_input;
 		std::cin >> user_input;
 
