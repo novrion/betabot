@@ -26,9 +26,6 @@ const int kMVVLVA[13][13] = {
 
 
 
-inline void GetMoveTargets(Board& b, U64 moves[100]);
-inline void OrderMoves(Board& b, U64 moves[100]);
-
 void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame);
 
 inline std::pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSide, const double kMaxTime);

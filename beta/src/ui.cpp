@@ -52,19 +52,22 @@ void PlayBot() {
 
 
 	// Initialize Saves
-	if (raw_side) side[1] = true;
-	else side[1] = false;
+	if (raw_side) side[0] = true;
+	else side[0] = false;
 
-	if (player_side && side[1] || !player_side && !side[1]) player_turn[1] = true;
-	else player_turn[1] = false;
+	if (player_side && side[0] || !player_side && !side[0]) player_turn[0] = true;
+	else player_turn[0] = false;
 
-	for (int i = 2; i < 400; ++i) {
+	for (int i = 1; i < 400; ++i) {
 		side[i] = !side[i - 1];
 		player_turn[i] = !player_turn[i - 1];
 	}
 
+	SaveState(0, b, 0, 0);
+
+
 	// Initialize Other Variables
-	int ply = 1;
+	int ply = 0;
 	int evaluation = 0;
 	U64 move = 0;
 	bool back = false;
@@ -72,30 +75,24 @@ void PlayBot() {
 
 
 	while (true) {
-
-		if (back) PrintState(boards[ply - 1], evaluations[ply - 1], moves[ply - 1], ply - 1);
+		
 		back = false;
 
-
-		if (!player_turn[ply]) {
-
-			BotMove(b, evaluation, move, side[ply], max_search_time);
-			SaveState(ply, b, evaluation, move);
-
-			PrintState(b, evaluation, move, ply);
-		}
-
-		else {
-
-			UserMove(ply, b, evaluation, move, side[ply], back);
-			SaveState(ply, b, evaluation, move);
-
+		if (player_turn[ply]) {
+			UserMove(ply, b, move, side[ply], back);
 			system("cls");
 		}
 
+		else {
+			BotMove(b, evaluation, move, side[ply], max_search_time);
+			PrintState(b, evaluation, move, ply);
+		}
 
-		if (back) ply -= 2;
-		else ++ply;
+		if (back) { ply -= 2; LoadState(ply, b, evaluation, move); }
+		else {
+			++ply;
+			SaveState(ply, b, evaluation, move);
+		}
 	}
 }
 
@@ -105,24 +102,73 @@ void BotMove(Board& b, int& eval, U64& move, const bool kSide, const double kMax
 	MakeMove(b.bb, move, kSide);
 }
 
-void UserMove(int& ply, Board& b, int& eval, U64& move, const bool kSide, bool& back) {
+void UserMove(int& ply, Board& b, U64& move, const bool kSide, bool& back) {
 
-	pair<int, int> input = UserInputMove();
-	if (input.first == -1 && ply > 1) {
-		LoadState(ply - 3, b, eval, move);
+	while (true) {
 
-		back = true;
-		return;
+		std::string user_input;
+		std::cin >> user_input;
+
+		if (user_input == "help") {
+			std::cout << "-------------------- Commands --------------------\n";
+			std::cout << "help:       Display this message\n";
+			std::cout << "l:          list playable moves\n";
+			std::cout << "r:          Go back one move\n";
+			std::cout << "Write two squares to play a move. (I.E: e2e4)\n";
+
+			continue;
+		}
+
+		else if (user_input[0] == 'l' && user_input.size() == 1) {
+
+			U64 moves[100];
+			moves[99] = 0;
+			GenerateMoves(b.bb, moves, kSide);
+			GetMoveTargets(b, moves, kSide);
+
+			std::cout << "---------- Playable Moves ----------\n";
+			for (int i = 0; i < moves[99]; ++i) {
+				std::cout << MoveToNotation(moves[i]) << "          ";
+				if (i % 3 == 2) std::cout << '\n';
+			}
+			if (moves[99] % 3 ) std::cout << '\n';
+
+			continue;
+		}
+
+		else if (user_input[0] == 'r' && user_input.size() == 1) {
+
+			if (ply < 2) {
+				std::cout << "Cannot go back further\n";
+				continue;
+			}
+
+			else {
+				back = true;
+				break;
+			}
+		}
+
+		else if (user_input.size() == 4
+						&& file_index.find(user_input[0]) != file_index.end() && file_index.find(user_input[2]) != file_index.end()
+						&& !(user_input[1] < 48) && !(user_input[3] < 48)
+						&& !(user_input[1] > 57) && !(user_input[3] > 57)) {
+
+			std::string source = "", target = "";
+			source += user_input[0]; source += user_input[1];
+			target += user_input[2]; target += user_input[3];
+
+			move = TranslateToMove(b, StringToSquare(source), StringToSquare(target), kSide);
+			if (VerifyMove(b, move, kSide)) {
+				MakeMove(b.bb, move, kSide);
+				break;
+			}
+		}
+
+		std::cout << "Invalid Move\n";
 	}
 
-
-	move = TranslateToMove(b, input.first, input.second, kSide);
-
-	if (VerifyMove(b, move, kSide)) MakeMove(b.bb, move, kSide);
-	else {
-		cout << "Invalid Move.\n";
-		UserMove(ply, b, eval, move, kSide, back);
-	}
+	return;
 }
 
 void SaveState(const int kPly, Board& b, const int kEval, const U64 kMove) {
@@ -159,8 +205,7 @@ U64 TranslateToMove(Board& b, const int kSource, const int kTarget, const bool k
 		}
 
 		// capture
-		if (B_BLOCK(b.bb) & 1ULL << kTarget) capture = 1;
-
+		for (int i = 7; i < 13; ++i) { if (b.bb[i] & 1ULL << kTarget) { capture = i; break; } }
 
 		// promotion
 		if (piece == 1 && kTarget / 8 == 0) promotion = 5;
@@ -183,7 +228,7 @@ U64 TranslateToMove(Board& b, const int kSource, const int kTarget, const bool k
 		}
 
 		// capture
-		if (W_BLOCK(b.bb) & 1ULL << kTarget) capture = 1;
+		for (int i = 1; i < 7; ++i) { if (b.bb[i] & 1ULL << kTarget) { capture = i; break; } }
 
 
 		// promotion
@@ -202,7 +247,7 @@ U64 TranslateToMove(Board& b, const int kSource, const int kTarget, const bool k
 
 	return ENCODE_MOVE(kSource, kTarget, piece, capture, promotion, _2pawn, en_passant, castle);
 }
-string MoveToNotation(const U64 kMove) {
+std::string MoveToNotation(const U64 kMove) {
 
 	map<int, char> notation_index = {
 		{0, 'a'},
@@ -254,22 +299,6 @@ int StringToSquare(const string kStr) {
 
 
 // User Interaction
-pair<int, int> UserInputMove() {
-
-	string from, to;
-
-	cout << "\nFrom: ";
-	cin >> from;
-	if (from == "r") return { -1, -1 };
-
-	cout << "To: ";
-	cin >> to;
-
-	cout << "\n";
-	
-	if (from.size() != 2 || to.size() != 2 || file_index.find(from[0]) == file_index.end() || file_index.find(to[0]) == file_index.end() || from[1] < 48 || from[1] > 57 || to[1] < 48 || to[1] > 57) return {-1, -1};
-	return { StringToSquare(from), StringToSquare(to) };
-}
 void InputFen(Board& b) {
 
 	string fen;
@@ -277,7 +306,7 @@ void InputFen(Board& b) {
 	fflush(stdin);
 	getline(cin, fen);
 
-	if (fen != "x") {
+	if (fen != "x" && fen != "X") {
 
 		for (int bitboard = 0; bitboard < 13; ++bitboard) {
 			b.bb[bitboard] = 0ULL;
@@ -395,6 +424,7 @@ bool VerifyMove(Board& b, const U64 kMove, const bool kSide) {
 	moves[99] = 0;
 
 	GenerateMoves(b.bb, moves, kSide);
+	GetMoveTargets(b, moves, kSide);
 
 	for (int i = 0; i < moves[99]; ++i) {
 		if (moves[i] == kMove) return true;

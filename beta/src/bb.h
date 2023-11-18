@@ -26,7 +26,10 @@ void InitAll(Board& b, bool& kSide, double& max_search_time);
 bool InitSide();
 double InitMaxSearchTime();
 
+// Moves
 void MakeMove(U64 bb[13], const U64 kMove, const bool kSide);
+void GetMoveTargets(Board& b, U64 moves[100], const bool kSide);
+bool InCheck(Board& b, const bool kSide);
 
 // Bit Manipulation
 int BitCount(U64 x);
