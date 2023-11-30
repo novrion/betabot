@@ -2537,16 +2537,20 @@ void InputFen(Board& b) {
 	string fen;
 	cout << "FEN: ";
 	fflush(stdin);
-	getline(cin, fen);
-
-	if (fen != "x" && fen != "X") {
-
-		for (int bitboard = 0; bitboard < 13; ++bitboard) {
-			b.bb[bitboard] = 0ULL;
-		}
-
-		ParseFen(b, fen);
+	for (int i = 0; i < 6; ++i) {
+		string tmp;
+		cin >> tmp;
+		if (tmp == "x" || tmp == "X") return;
+		fen += tmp;
 	}
+	//getline(cin, fen, '\n');
+
+
+	for (int bitboard = 0; bitboard < 13; ++bitboard) {
+		b.bb[bitboard] = 0ULL;
+	}
+
+	ParseFen(b, fen);
 }
 
 
