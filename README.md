@@ -6,6 +6,9 @@
 3: input fen code or 'x' to start a game  
 4: write moves to play them. Ex: "e2e4" or "b1c3"  
 
+Castle: move the king to the square it stands after castling  
+
+**Run the run_optimized.exe or run.exe to start the engine**
 
 
 
