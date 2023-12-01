@@ -2,7 +2,6 @@
 
 
 
-// Evaluation
 int Evaluate(const U64 kBB[13]) {
 
 	int evaluation = 0;
