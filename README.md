@@ -11,9 +11,16 @@
 4: write moves to play them. Ex: "e2e4" or "b1c3"
 
 
+
+
 **Specifications**
+
 Bitboard representation
+
 Negamax
+
 Alpha beta pruning
+
 Null move heuristic
+
 LVVMVA move order
