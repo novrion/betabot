@@ -471,7 +471,7 @@ inline void WKingMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, 
 
 	// Castle
 	if (GET_UTILITY_W_LONG_CASTLE(kBB[0]) && (kBB[4] & (1ULL << 56)) && !(kWCastleLongSpaceMask & (kWBlock | kBBlock)) && !(kBB[7] & kWCastleLongPawnMask) && !(kBB[8] & kWCastleLongKnightMask) && !(kBB[12] & kWCastleLongKingMask)) {
-		if (CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 60, true) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 59, true) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 58, true) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 57, true)) {
+		if (CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 60, true) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 59, true) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 58, true)) {
 			AddMove(moves, ENCODE_MOVE(60, 58, 6, 0, 0, 0, 0, 1));
 		}
 	}
@@ -816,7 +816,7 @@ inline void BKingMoves(const int kSquare, const U64 kWBlock, const U64 kBBlock, 
 
 	// Castle
 	if (GET_UTILITY_B_LONG_CASTLE(kBB[0]) && (kBB[10] & 1ULL) && !(kBCastleLongSpaceMask & (kWBlock | kBBlock)) && !(kBB[1] & kBCastleLongPawnMask) && !(kBB[2] & kBCastleLongKnightMask) && !(kBB[6] & kBCastleLongKingMask)) {
-		if (CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 4, false) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 3, false) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 2, false) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 1, false)) {
+		if (CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 4, false) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 3, false) && CastleDiagonalInCheck(kBB, kWBlock, kBBlock, 2, false)) {
 			AddMove(moves, ENCODE_MOVE(4, 2, 12, 0, 0, 0, 0, 1));
 		}
 	}
