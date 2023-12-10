@@ -11,7 +11,7 @@ Castle: move the king to the square it stands after castling
 **Run the run_optimized.exe or run.exe to start the engine**
 
 **Download:**
-Click release and download the zip file containing all source code and the executables
+Click releases and download the zip file containing all source code and the executables
 
 **Algorithms & Optimizations used**  
 Bitboard representation  
