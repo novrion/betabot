@@ -15,7 +15,7 @@ Click "Releases" (to the right) and download source code and/or executables by c
 Note that most systems will warn that the executables may be malware  
 This is not a virus, most systems warn the user when running any executable that isn't "trusted" or "validated"  
 
-**Algorithms & Optimizations used**  
+**Algorithms & Optimizations**  
 Bitboard representation  
 Negamax  
 Alpha beta pruning  
