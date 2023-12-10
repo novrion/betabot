@@ -10,10 +10,10 @@ Castle: move the king to the square it stands after castling
 
 **Run the run_optimized.exe or run.exe to start the engine**
 
-**Download:**
-Click "Releases" (to the right) and download source code and/or executables by clicking on them
-Note that most systems will warn that the executables may be malware
-This is not a virus, most systems warn the user when running any executable that isn't "trusted" or "validated"
+**Download:**  
+Click "Releases" (to the right) and download source code and/or executables by clicking on them  
+Note that most systems will warn that the executables may be malware  
+This is not a virus, most systems warn the user when running any executable that isn't "trusted" or "validated"  
 
 **Algorithms & Optimizations used**  
 Bitboard representation  
