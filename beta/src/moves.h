@@ -18,8 +18,8 @@ const U64 kWCastleShortPawnMask = 69805794224242688ULL;
 const U64 kWCastleShortKnightMask = 62197173760032768ULL;
 const U64 kWCastleShortKingMask = 18014398509481984ULL;
 
-const U64 kWCastleLongPawnMask = 17732923532771328ULL;
-const U64 kWCastleLongKnightMask = 35816591274803200ULL;
+const U64 kWCastleLongPawnMask = 17451448556060672ULL;
+const U64 kWCastleLongKnightMask = 33563691949490176ULL;
 const U64 kWCastleLongKingMask = 1688849860263936ULL;
 
 
@@ -27,8 +27,8 @@ const U64 kBCastleShortPawnMask = 63488ULL;
 const U64 kBCastleShortKnightMask = 16309248ULL;
 const U64 kBCastleShortKingMask = 16384ULL;
 
-const U64 kBCastleLongPawnMask = 16128ULL;
-const U64 kBCastleLongKnightMask = 4161280ULL;
+const U64 kBCastleLongPawnMask = 15872ULL;
+const U64 kBCastleLongKnightMask = 4093696ULL;
 const U64 kBCastleLongKingMask = 1536ULL;
 
 
