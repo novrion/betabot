@@ -311,6 +311,7 @@ void InputFen(Board& b) {
 		cin >> tmp;
 		if (tmp == "x" || tmp == "X") return;
 		fen += tmp;
+		fen += " ";
 	}
 	//getline(cin, fen, '\n');
 
