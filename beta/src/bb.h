@@ -26,6 +26,12 @@ void InitAll(Board& b, bool& kSide, double& max_search_time);
 bool InitSide();
 double InitMaxSearchTime();
 
+// Hash
+U64 Zobrist(Board& b, const bool kSide);
+unsigned XorShift32(unsigned& x);
+U64 XorShift64(unsigned& x);
+void InitTransposition();
+
 // Moves
 void MakeMove(U64 bb[13], const U64 kMove, const bool kSide);
 void GetMoveTargets(Board& b, U64 moves[100], const bool kSide);

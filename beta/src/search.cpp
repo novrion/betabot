@@ -8,7 +8,7 @@ bool end_game = false;
 
 
 
-void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame) {
+void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame, std::unordered_map<U64, U64> hash) {
 
     end_game = kEndGame;
 
@@ -19,7 +19,7 @@ void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& 
         duration<double> time;
         time_point<high_resolution_clock> start_time = high_resolution_clock::now();
 
-        search_data = LayerOneNegaMax(b, depth, kSide, kMaxTime);
+        search_data = LayerOneNegaMax(b, depth, kSide, kMaxTime, hash);
 
         time = high_resolution_clock::now() - start_time;
 
@@ -32,16 +32,12 @@ void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& 
 
             cout << depth << " ";
 
-            SetConsoleTextAttribute(hConsole, 14);
             cout << "[ ";
 
-            SetConsoleTextAttribute(hConsole, 12);
             cout << time.count();
 
-            SetConsoleTextAttribute(hConsole, 14);
             cout << " ]   ";
 
-            SetConsoleTextAttribute(hConsole, 15);
         }
 
 
@@ -51,7 +47,7 @@ void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& 
     }
 }
 
-inline pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSide, const double kMaxTime) {
+inline pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSide, const double kMaxTime, std::unordered_map<U64, U64> hash) {
 
     duration<double> time;
     time_point<high_resolution_clock> start_time = high_resolution_clock::now();
@@ -76,7 +72,7 @@ inline pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSi
         b_copy = b;
         MakeMove(b_copy.bb, moves[i], kSide);
 
-        int score = -NegaMax(b_copy, kDepth - 1, !kSide, -beta, -alpha);
+        int score = -NegaMax(b_copy, kDepth - 1, !kSide, -beta, -alpha, hash);
 
         if (score > alpha) {
             alpha = score;
@@ -89,23 +85,30 @@ inline pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSi
     return { alpha, best_move };
 }
 
-inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int beta) {
+inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int beta, std::unordered_map<U64, U64> hash) {
+	
+	// Transposition Table
+	U64 key = Zobrist(b, kSide);
+	if (hash.find(key) != hash.end() && GET_HASH_DEPTH(hash[key]) >= kDepth) {cout << "1"; return GET_HASH_EVAL(hash[key]);}
 
-    if (!kDepth) return Quiescence(b, 4, kSide, alpha, beta);
+	if (!kDepth) return Quiescence(b, 4, kSide, alpha, beta);
 
     // Null Move Heuristic
     if (kDepth >= 3 && !end_game && !InCheck(b, kSide)) {
 
         Board b_copy = b;
-        int eval = -NegaMax(b_copy, kDepth - 1 - kR, !kSide, -beta, -beta + 1);
-        if (eval >= beta) return beta;
+        int eval = -NegaMax(b_copy, kDepth - 1 - kR, !kSide, -beta, -beta + 1, hash);
+        if (eval >= beta) { 
+		hash[key] = ENCODE_HASH(beta, kDepth);
+		return beta;
+	}
     }
 
     U64 moves[100];
     moves[99] = 0;
 
-    GenerateMoves(b.bb, moves, kSide);
-    GetMoveTargets(b, moves, kSide);
+   	GenerateMoves(b.bb, moves, kSide);
+   	GetMoveTargets(b, moves, kSide);
 	sort(moves, moves + moves[99], [](const U64 c, const U64 d) {return kMVVLVA[GET_MOVE_PIECE(c)][GET_MOVE_CAPTURE(c)] > kMVVLVA[GET_MOVE_PIECE(d)][GET_MOVE_CAPTURE(d)]; });
 
 
@@ -118,18 +121,20 @@ inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int 
         b_copy = b;
         MakeMove(b_copy.bb, moves[i], kSide);
 
-        int score = -NegaMax(b_copy, kDepth - 1, !kSide, -beta, -alpha);
+        int score = -NegaMax(b_copy, kDepth - 1, !kSide, -beta, -alpha, hash);
 
         if (score > alpha) {
             alpha = score;
 
             if (score >= beta) {
+		hash[key] = ENCODE_HASH(beta, kDepth);
                 return beta;
             }
         }
     }
 
-    return alpha;
+	hash[key] = ENCODE_HASH(alpha, kDepth);
+	return alpha;
 }
 
 inline int Quiescence(Board& b, const int kDepth, const bool kSide, int alpha, int beta) {

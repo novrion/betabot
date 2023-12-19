@@ -2,14 +2,10 @@
 
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
 #include <string>
 #include <chrono>
 #include <map>
-
-#include <windows.h>
-
-
-const HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 
 #define U64 unsigned long long
@@ -50,6 +46,12 @@ const HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 #define GET_UTILITY_B_SHORT_CASTLE(utility) (utility & 256ULL)
 #define GET_UTILITY_B_LONG_CASTLE(utility) (utility & 512ULL)
 #define GET_UTILITY_SIDE(utility) (utility & 1024ULL)
+
+// Hash Utility
+#define GET_HASH_CASTLING(utility) ((utility & 960ULL) >> 6)
+#define GET_HASH_DEPTH(hash) (hash & 4294967295ULL)
+#define GET_HASH_EVAL(hash) (hash >> 32)
+#define ENCODE_HASH(eval, depth) (((0ULL | eval) << 32) | depth)
 
 
 

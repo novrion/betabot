@@ -47,6 +47,9 @@ void PlayBot() {
 	double max_search_time;
 	InitAll(b, player_side, max_search_time);
 
+	// Initialize Transposition Table
+	std::unordered_map<U64, U64> hash;
+
 	InputFen(b);
 	bool raw_side = GET_UTILITY_SIDE(b.bb[0]);
 
@@ -84,7 +87,7 @@ void PlayBot() {
 		}
 
 		else {
-			BotMove(b, evaluation, move, side[ply], max_search_time);
+			BotMove(b, evaluation, move, side[ply], max_search_time, hash);
 			PrintState(b, evaluation, move, ply);
 		}
 
@@ -96,9 +99,9 @@ void PlayBot() {
 	}
 }
 
-void BotMove(Board& b, int& eval, U64& move, const bool kSide, const double kMaxSearchTime) {
+void BotMove(Board& b, int& eval, U64& move, const bool kSide, const double kMaxSearchTime, std::unordered_map<U64, U64> hash) {
 
-	IterativeDeepening(b, kSide, kMaxSearchTime, eval, move, (BitCount(W_BLOCK(b.bb) | B_BLOCK(b.bb)) < 15));
+	IterativeDeepening(b, kSide, kMaxSearchTime, eval, move, (BitCount(W_BLOCK(b.bb) | B_BLOCK(b.bb)) < 15), hash);
 	MakeMove(b.bb, move, kSide);
 }
 
@@ -331,9 +334,7 @@ void PrintBoard(const char kBoard[64], const int kSource, const int kTarget) {
 		for (int y = 0; y < 8; ++y) {
 			if (!y) {
 
-				SetConsoleTextAttribute(hConsole, 11);
 				cout << "  " << 8 - x << "  ";
-				SetConsoleTextAttribute(hConsole, 15);
 			}
 
 			int square = x * 8 + y;
@@ -341,12 +342,10 @@ void PrintBoard(const char kBoard[64], const int kSource, const int kTarget) {
 			if (square == kSource || square == kTarget) {
 
 				cout << "   ";
-				square == kSource ? SetConsoleTextAttribute(hConsole, 47) : SetConsoleTextAttribute(hConsole, 79);
 
 				if (!kBoard[square]) cout << " ";
 				else cout << kBoard[square];
 
-				SetConsoleTextAttribute(hConsole, 15);
 			}
 			else if (kBoard[square]) cout << "   " << kBoard[square];
 			else cout << "    ";
@@ -354,9 +353,7 @@ void PrintBoard(const char kBoard[64], const int kSource, const int kTarget) {
 		cout << "\n\n";
 	}
 
-	SetConsoleTextAttribute(hConsole, 11);
 	cout << "\n        " << "A   B   C   D   E   F   G   H" << "\n";
-	SetConsoleTextAttribute(hConsole, 15);
 }
 void PrintState(Board& b, const int kEval, const U64 kNextMove, const int kPly) {
 
@@ -382,14 +379,10 @@ void PrintState(Board& b, const int kEval, const U64 kNextMove, const int kPly) 
 
 	cout << "\nPly: " << kPly;
 	cout << "\nMove: ";
-	SetConsoleTextAttribute(hConsole, 10);
 	cout << MoveToNotation(kNextMove) << "\n";
-	SetConsoleTextAttribute(hConsole, 15);
 
 	cout << "Evaluation: ";
-	SetConsoleTextAttribute(hConsole, 14);
 	cout << ((double)kEval) / 1000 << "\n\n";
-	SetConsoleTextAttribute(hConsole, 15);
 
 
 	// Fill Board

@@ -26,8 +26,8 @@ const int kMVVLVA[13][13] = {
 
 
 
-void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame);
+void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame, std::unordered_map<U64, U64> hash);
 
-inline std::pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSide, const double kMaxTime);
-inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int beta);
+inline std::pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSide, const double kMaxTime, std::unordered_map<U64, U64> hash);
+inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int beta, std::unordered_map<U64, U64> hash);
 inline int Quiescence(Board& b, const int kDepth, const bool kSide, int alpha, int beta);

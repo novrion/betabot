@@ -1,6 +1,14 @@
 #include "bb.h"
 
 
+unsigned key = 9876789;
+U64 piece_hash[13][64];
+U64 castle_hash[16];
+U64 en_passant_hash[64];
+U64 side_hash;
+
+
+
 // Moves
 void MakeMove(U64 bb[13], const U64 kMove, const bool kSide) {
 
@@ -354,6 +362,8 @@ void InitAll(Board& b, bool& kSide, double& max_search_time) {
 	kSide = b.side;
 
 	max_search_time = InitMaxSearchTime();
+
+	InitTransposition();
 }
 bool InitSide() {
 
@@ -372,4 +382,78 @@ double InitMaxSearchTime() {
 	std::cin >> max_search_time;
 
 	return max_search_time;
+}
+
+
+
+// Hashing
+inline unsigned XorShift32(unsigned& x) {
+  x ^= x << 13;
+  x ^= x >> 17;
+  x ^= x << 5;
+  return x;
+}
+
+inline U64 XorShift64(unsigned& x) {
+    	U64 ret = XorShift32(x);
+	ret = ret << 32;
+	ret |= XorShift32(x);
+	return ret;
+}
+
+inline void InitTransposition() {
+
+    for (int i = 0; i < 13; ++i) {
+        for (int j = 0; j < 64; ++j) {
+            piece_hash[i][j] = XorShift64(key);
+        }
+    }
+
+    for (int i = 0; i < 16; ++i) {
+        castle_hash[i] = XorShift64(key);
+    }
+
+    for (int i = 0; i < 64; ++i) {
+        en_passant_hash[i] = XorShift64(key);
+    }
+
+    side_hash = XorShift64(key);
+}
+
+
+U64 Zobrist(Board& b, const bool kSide) {
+
+    U64 ret = 0;
+
+    U64 bitboard = b.bb[1];
+    while (bitboard) ret ^= piece_hash[1][PopLsb(bitboard)];
+    bitboard = b.bb[2];
+    while (bitboard) ret ^= piece_hash[2][PopLsb(bitboard)];
+    bitboard = b.bb[3];
+    while (bitboard) ret ^= piece_hash[3][PopLsb(bitboard)];
+    bitboard = b.bb[4];
+    while (bitboard) ret ^= piece_hash[4][PopLsb(bitboard)];
+    bitboard = b.bb[5];
+    while (bitboard) ret ^= piece_hash[5][PopLsb(bitboard)];
+    bitboard = b.bb[6];
+    while (bitboard) ret ^= piece_hash[6][PopLsb(bitboard)];
+    
+    bitboard = b.bb[7];
+    while (bitboard) ret ^= piece_hash[7][PopLsb(bitboard)];
+    bitboard = b.bb[8];
+    while (bitboard) ret ^= piece_hash[8][PopLsb(bitboard)];
+    bitboard = b.bb[9];
+    while (bitboard) ret ^= piece_hash[9][PopLsb(bitboard)];
+    bitboard = b.bb[10];
+    while (bitboard) ret ^= piece_hash[10][PopLsb(bitboard)];
+    bitboard = b.bb[11];
+    while (bitboard) ret ^= piece_hash[11][PopLsb(bitboard)];
+    bitboard = b.bb[12];
+    while (bitboard) ret ^= piece_hash[12][PopLsb(bitboard)];
+ 
+    ret ^= castle_hash[GET_HASH_CASTLING(b.bb[0])];
+    ret ^= kSide * (side_hash);
+    ret ^= en_passant_hash[GET_UTILITY_EN_PASSANT(b.bb[0])];
+
+    return ret;
 }
