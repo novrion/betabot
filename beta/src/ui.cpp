@@ -99,7 +99,7 @@ void PlayBot() {
 	}
 }
 
-void BotMove(Board& b, int& eval, U64& move, const bool kSide, const double kMaxSearchTime, std::unordered_map<U64, U64> hash) {
+void BotMove(Board& b, int& eval, U64& move, const bool kSide, const double kMaxSearchTime, std::unordered_map<U64, U64>& hash) {
 
 	IterativeDeepening(b, kSide, kMaxSearchTime, eval, move, (BitCount(W_BLOCK(b.bb) | B_BLOCK(b.bb)) < 15), hash);
 	MakeMove(b.bb, move, kSide);

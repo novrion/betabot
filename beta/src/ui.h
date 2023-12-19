@@ -14,7 +14,7 @@ const int reverse_int[8] = { 8, 7, 6, 5, 4, 3, 2, 1 };
 // Play Bot
 void PlayBot();
 
-void BotMove(Board& b, int& evaluation, U64& move, const bool kSide, const double kMaxSearchTime, std::unordered_map<U64, U64> hash);
+void BotMove(Board& b, int& evaluation, U64& move, const bool kSide, const double kMaxSearchTime, std::unordered_map<U64, U64>& hash);
 void UserMove(int& ply, Board& b, U64& move, const bool kSide, bool& back);
 void SaveState(const int kPly, Board& b, const int kEval, const U64 move);
 void LoadState(const int kPly, Board& b, int& evaluation, U64& move);
