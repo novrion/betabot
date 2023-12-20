@@ -1,16 +1,12 @@
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
 #include <string>
 #include <chrono>
 #include <map>
 
-#include <windows.h>
-
 using namespace std;
 using namespace std::chrono;
-
-
-const HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 
 #define U64 unsigned long long
@@ -52,6 +48,20 @@ const HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 #define GET_UTILITY_B_LONG_CASTLE(utility) (utility & 512ULL)
 #define GET_UTILITY_SIDE(utility) (utility & 1024ULL)
 
+// Hash Utility
+#define GET_HASH_CASTLING(utility) ((utility & 960ULL) >> 6)
+#define GET_HASH_DEPTH(hash) (hash & 4294967295ULL)
+#define GET_HASH_EVAL(hash) (hash >> 32)
+#define ENCODE_HASH(eval, depth) (((0ULL | eval) << 32) | depth)
+
+
+
+// Good sort :)
+/*sort(moves.begin(), moves.end(), [](U64 a, U64 b) {return a < (>) b; }); */
+/*int i = moves.size() - 1; i >= 0; --i*/
+
+// https://github.com/tmacksf/TtCE/blob/main/Bitboard.hpp
+
 
 
 /* -------------------------------------------------- BB --------------------------------------------------*/
@@ -72,8 +82,38 @@ struct Board {
 	bool side;
 };
 
+
+
+// Initialization
+void InitAll(Board& b, bool& kSide, double& max_search_time);
+bool InitSide();
+double InitMaxSearchTime();
+
+// Hash
+U64 Zobrist(Board& b, const bool kSide);
+unsigned XorShift32(unsigned& x);
+U64 XorShift64(unsigned& x);
+void InitTransposition();
+
 // Moves
-inline void MakeMove(U64 bb[13], const U64 kMove, const bool kSide) {
+void MakeMove(U64 bb[13], const U64 kMove, const bool kSide);
+void GetMoveTargets(Board& b, U64 moves[100], const bool kSide);
+bool InCheck(Board& b, const bool kSide);
+
+// Bit Manipulation
+int BitCount(U64 x);
+int PopLsb(U64& b);
+
+unsigned key = 9876789;
+U64 piece_hash[13][64];
+U64 castle_hash[16];
+U64 en_passant_hash[64];
+U64 side_hash;
+
+
+
+// Moves
+void MakeMove(U64 bb[13], const U64 kMove, const bool kSide) {
 
 	int source = GET_MOVE_SOURCE(kMove);
 	int target = GET_MOVE_TARGET(kMove);
@@ -186,7 +226,8 @@ inline void MakeMove(U64 bb[13], const U64 kMove, const bool kSide) {
 		SET_BIT(bb[piece], target);
 	}
 }
-inline void GetMoveTargets(Board& b, U64 moves[100], const bool kSide) {
+
+void GetMoveTargets(Board& b, U64 moves[100], const bool kSide) {
 
     if (kSide) {
 
@@ -228,7 +269,8 @@ inline void GetMoveTargets(Board& b, U64 moves[100], const bool kSide) {
         }
     }
 }
-inline bool InCheck(Board& b, const bool kSide) {
+
+bool InCheck(Board& b, const bool kSide) {
 
     const U64 kWBlock = W_BLOCK(b.bb);
     const U64 kBBlock = B_BLOCK(b.bb);
@@ -379,7 +421,7 @@ inline bool InCheck(Board& b, const bool kSide) {
 
 
 // Bit Manipulation
-inline int BitCount(U64 x) {
+int BitCount(U64 x) {
 
 	x -= (x >> 1) & 0x5555555555555555;
 	x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333);
@@ -387,7 +429,7 @@ inline int BitCount(U64 x) {
 
 	return ((x * 0x0101010101010101) >> 56);
 }
-inline int PopLsb(U64& b) {
+int PopLsb(U64& b) {
 
 	const int kS = __builtin_ctzll(b);
 	b &= b - 1;
@@ -395,26 +437,6 @@ inline int PopLsb(U64& b) {
 	return kS;
 }
 
-
-bool InitSide() {
-
-	char ch;
-
-	std::cout << "Player Side W/B: ";
-	std::cin >> ch;
-
-	return ((ch == 'W' || ch == 'w') ? true : false);
-}
-
-double InitMaxSearchTime() {
-
-	double max_search_time;
-
-	std::cout << "Max Search Time (s): ";
-	std::cin >> max_search_time;
-
-	return max_search_time;
-}
 
 void InitAll(Board& b, bool& kSide, double& max_search_time) {
 
@@ -443,7 +465,102 @@ void InitAll(Board& b, bool& kSide, double& max_search_time) {
 	kSide = b.side;
 
 	max_search_time = InitMaxSearchTime();
+
+	InitTransposition();
 }
+bool InitSide() {
+
+	char ch;
+
+	std::cout << "Player Side W/B: ";
+	std::cin >> ch;
+
+	return ((ch == 'W' || ch == 'w') ? true : false);
+}
+double InitMaxSearchTime() {
+
+	double max_search_time;
+
+	std::cout << "Max Search Time (s): ";
+	std::cin >> max_search_time;
+
+	return max_search_time;
+}
+
+
+
+// Hashing
+inline unsigned XorShift32(unsigned& x) {
+  x ^= x << 13;
+  x ^= x >> 17;
+  x ^= x << 5;
+  return x;
+}
+
+inline U64 XorShift64(unsigned& x) {
+    	U64 ret = XorShift32(x);
+	ret = ret << 32;
+	ret |= XorShift32(x);
+	return ret;
+}
+
+inline void InitTransposition() {
+
+    for (int i = 0; i < 13; ++i) {
+        for (int j = 0; j < 64; ++j) {
+            piece_hash[i][j] = XorShift64(key);
+        }
+    }
+
+    for (int i = 0; i < 16; ++i) {
+        castle_hash[i] = XorShift64(key);
+    }
+
+    for (int i = 0; i < 64; ++i) {
+        en_passant_hash[i] = XorShift64(key);
+    }
+
+    side_hash = XorShift64(key);
+}
+
+
+U64 Zobrist(Board& b, const bool kSide) {
+
+    U64 ret = 0;
+
+    U64 bitboard = b.bb[1];
+    while (bitboard) ret ^= piece_hash[1][PopLsb(bitboard)];
+    bitboard = b.bb[2];
+    while (bitboard) ret ^= piece_hash[2][PopLsb(bitboard)];
+    bitboard = b.bb[3];
+    while (bitboard) ret ^= piece_hash[3][PopLsb(bitboard)];
+    bitboard = b.bb[4];
+    while (bitboard) ret ^= piece_hash[4][PopLsb(bitboard)];
+    bitboard = b.bb[5];
+    while (bitboard) ret ^= piece_hash[5][PopLsb(bitboard)];
+    bitboard = b.bb[6];
+    while (bitboard) ret ^= piece_hash[6][PopLsb(bitboard)];
+    
+    bitboard = b.bb[7];
+    while (bitboard) ret ^= piece_hash[7][PopLsb(bitboard)];
+    bitboard = b.bb[8];
+    while (bitboard) ret ^= piece_hash[8][PopLsb(bitboard)];
+    bitboard = b.bb[9];
+    while (bitboard) ret ^= piece_hash[9][PopLsb(bitboard)];
+    bitboard = b.bb[10];
+    while (bitboard) ret ^= piece_hash[10][PopLsb(bitboard)];
+    bitboard = b.bb[11];
+    while (bitboard) ret ^= piece_hash[11][PopLsb(bitboard)];
+    bitboard = b.bb[12];
+    while (bitboard) ret ^= piece_hash[12][PopLsb(bitboard)];
+ 
+    ret ^= castle_hash[GET_HASH_CASTLING(b.bb[0])];
+    ret ^= kSide * (side_hash);
+    ret ^= en_passant_hash[GET_UTILITY_EN_PASSANT(b.bb[0])];
+
+    return ret;
+}
+
 
 
 
@@ -2026,9 +2143,146 @@ const int kMVVLVA[13][13] = {
   0,  100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600
 };
 
+
+
+void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame, std::unordered_map<U64, U64>& hash);
+
+inline std::pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSide, const double kMaxTime, std::unordered_map<U64, U64>& hash);
+inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int beta, std::unordered_map<U64, U64>& hash);
+inline int Quiescence(Board& b, const int kDepth, const bool kSide, int alpha, int beta);
+
 bool end_game = false;
 
 
+
+void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame, std::unordered_map<U64, U64>& hash) {
+
+    end_game = kEndGame;
+
+    pair<int, U64> search_data;
+
+    for (int depth = 1; depth < 256; ++depth) {
+
+        duration<double> time;
+        time_point<high_resolution_clock> start_time = high_resolution_clock::now();
+
+        search_data = LayerOneNegaMax(b, depth, kSide, kMaxTime, hash);
+
+        time = high_resolution_clock::now() - start_time;
+
+
+        if (!(search_data.second == kTimeFlag)) {
+
+            evaluation_out = search_data.first;
+            move_out = search_data.second;
+
+
+            cout << depth << " ";
+
+            cout << "[ ";
+
+            cout << time.count();
+
+            cout << " ]   ";
+
+        }
+
+
+        if (search_data.second == kTimeFlag || time.count() > 0.2 * kMaxTime) return;
+
+        if (time.count() < kMaxTime / 100) ++depth;
+    }
+}
+
+inline pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSide, const double kMaxTime, std::unordered_map<U64, U64>& hash) {
+
+    duration<double> time;
+    time_point<high_resolution_clock> start_time = high_resolution_clock::now();
+
+    int alpha = -999999;
+    int beta = 999999;
+    U64 best_move;
+    U64 moves[100];
+    moves[99] = 0;
+
+    GenerateMoves(b.bb, moves, kSide);
+    GetMoveTargets(b, moves, kSide);
+	sort(moves, moves + moves[99], [](const U64 c, const U64 d) {return kMVVLVA[GET_MOVE_PIECE(c)][GET_MOVE_CAPTURE(c)] > kMVVLVA[GET_MOVE_PIECE(d)][GET_MOVE_CAPTURE(d)]; });
+
+
+    Board b_copy;
+
+    for (int i = 0; i < moves[99]; ++i) {
+
+        if ((1ULL << GET_MOVE_TARGET(moves[i])) & b.bb[6] || (1ULL << GET_MOVE_TARGET(moves[i])) & b.bb[12]) return { 100000 + kDepth, moves[i] };
+
+        b_copy = b;
+        MakeMove(b_copy.bb, moves[i], kSide);
+
+        int score = -NegaMax(b_copy, kDepth - 1, !kSide, -beta, -alpha, hash);
+
+        if (score > alpha) {
+            alpha = score;
+            best_move = moves[i];
+        }
+
+        if ((time = high_resolution_clock::now() - start_time).count() > kMaxTime) return { 0, kTimeFlag };
+    }
+
+    return { alpha, best_move };
+}
+
+inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int beta, std::unordered_map<U64, U64>& hash) {
+	
+	// Transposition Table
+	U64 key = Zobrist(b, kSide);
+	if (hash.find(key) != hash.end() && GET_HASH_DEPTH(hash[key]) >= kDepth) return GET_HASH_EVAL(hash[key]);
+
+	if (!kDepth) return Quiescence(b, 4, kSide, alpha, beta);
+
+    // Null Move Heuristic
+    if (kDepth >= 3 && !end_game && !InCheck(b, kSide)) {
+
+        Board b_copy = b;
+        int eval = -NegaMax(b_copy, kDepth - 1 - kR, !kSide, -beta, -beta + 1, hash);
+        if (eval >= beta) { 
+		hash[key] = ENCODE_HASH(beta, kDepth);
+		return beta;
+	}
+    }
+
+    U64 moves[100];
+    moves[99] = 0;
+
+   	GenerateMoves(b.bb, moves, kSide);
+   	GetMoveTargets(b, moves, kSide);
+	sort(moves, moves + moves[99], [](const U64 c, const U64 d) {return kMVVLVA[GET_MOVE_PIECE(c)][GET_MOVE_CAPTURE(c)] > kMVVLVA[GET_MOVE_PIECE(d)][GET_MOVE_CAPTURE(d)]; });
+
+
+    Board b_copy;
+
+    for (int i = 0; i < moves[99]; ++i) {
+
+        if ((1ULL << GET_MOVE_TARGET(moves[i])) & b.bb[6] || (1ULL << GET_MOVE_TARGET(moves[i])) & b.bb[12]) return (100000 + kDepth);
+
+        b_copy = b;
+        MakeMove(b_copy.bb, moves[i], kSide);
+
+        int score = -NegaMax(b_copy, kDepth - 1, !kSide, -beta, -alpha, hash);
+
+        if (score > alpha) {
+            alpha = score;
+
+            if (score >= beta) {
+		hash[key] = ENCODE_HASH(beta, kDepth);
+                return beta;
+            }
+        }
+    }
+
+	hash[key] = ENCODE_HASH(alpha, kDepth);
+	return alpha;
+}
 
 inline int Quiescence(Board& b, const int kDepth, const bool kSide, int alpha, int beta) {
 
@@ -2069,130 +2323,6 @@ inline int Quiescence(Board& b, const int kDepth, const bool kSide, int alpha, i
     return alpha;
 }
 
-inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int beta) {
-
-    if (!kDepth) return Quiescence(b, 4, kSide, alpha, beta);
-
-    // Null Move Heuristic
-    if (kDepth >= 3 && !end_game && !InCheck(b, kSide)) {
-
-        Board b_copy = b;
-        int eval = -NegaMax(b_copy, kDepth - 1 - kR, !kSide, -beta, -beta + 1);
-        if (eval >= beta) return beta;
-    }
-
-    U64 moves[100];
-    moves[99] = 0;
-
-    GenerateMoves(b.bb, moves, kSide);
-    GetMoveTargets(b, moves, kSide);
-	sort(moves, moves + moves[99], [](const U64 c, const U64 d) {return kMVVLVA[GET_MOVE_PIECE(c)][GET_MOVE_CAPTURE(c)] > kMVVLVA[GET_MOVE_PIECE(d)][GET_MOVE_CAPTURE(d)]; });
-
-
-    Board b_copy;
-
-    for (int i = 0; i < moves[99]; ++i) {
-
-        if ((1ULL << GET_MOVE_TARGET(moves[i])) & b.bb[6] || (1ULL << GET_MOVE_TARGET(moves[i])) & b.bb[12]) return (100000 + kDepth);
-
-        b_copy = b;
-        MakeMove(b_copy.bb, moves[i], kSide);
-
-        int score = -NegaMax(b_copy, kDepth - 1, !kSide, -beta, -alpha);
-
-        if (score > alpha) {
-            alpha = score;
-
-            if (score >= beta) {
-                return beta;
-            }
-        }
-    }
-
-    return alpha;
-}
-
-inline pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSide, const double kMaxTime) {
-
-    duration<double> time;
-    time_point<high_resolution_clock> start_time = high_resolution_clock::now();
-
-    int alpha = -999999;
-    int beta = 999999;
-    U64 best_move;
-    U64 moves[100];
-    moves[99] = 0;
-
-    GenerateMoves(b.bb, moves, kSide);
-    GetMoveTargets(b, moves, kSide);
-	sort(moves, moves + moves[99], [](const U64 c, const U64 d) {return kMVVLVA[GET_MOVE_PIECE(c)][GET_MOVE_CAPTURE(c)] > kMVVLVA[GET_MOVE_PIECE(d)][GET_MOVE_CAPTURE(d)]; });
-
-
-    Board b_copy;
-
-    for (int i = 0; i < moves[99]; ++i) {
-
-        if ((1ULL << GET_MOVE_TARGET(moves[i])) & b.bb[6] || (1ULL << GET_MOVE_TARGET(moves[i])) & b.bb[12]) return { 100000 + kDepth, moves[i] };
-
-        b_copy = b;
-        MakeMove(b_copy.bb, moves[i], kSide);
-
-        int score = -NegaMax(b_copy, kDepth - 1, !kSide, -beta, -alpha);
-
-        if (score > alpha) {
-            alpha = score;
-            best_move = moves[i];
-        }
-
-        if ((time = high_resolution_clock::now() - start_time).count() > kMaxTime) return { 0, kTimeFlag };
-    }
-
-    return { alpha, best_move };
-}
-
-inline void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame) {
-
-    end_game = kEndGame;
-
-    pair<int, U64> search_data;
-
-    for (int depth = 1; depth < 256; ++depth) {
-
-        duration<double> time;
-        time_point<high_resolution_clock> start_time = high_resolution_clock::now();
-
-        search_data = LayerOneNegaMax(b, depth, kSide, kMaxTime);
-
-        time = high_resolution_clock::now() - start_time;
-
-
-        if (!(search_data.second == kTimeFlag)) {
-
-            evaluation_out = search_data.first;
-            move_out = search_data.second;
-
-
-            cout << depth << " ";
-
-            SetConsoleTextAttribute(hConsole, 14);
-            cout << "[ ";
-
-            SetConsoleTextAttribute(hConsole, 12);
-            cout << time.count();
-
-            SetConsoleTextAttribute(hConsole, 14);
-            cout << " ]   ";
-
-            SetConsoleTextAttribute(hConsole, 15);
-        }
-
-
-        if (search_data.second == kTimeFlag || time.count() > 0.2 * kMaxTime) return;
-
-        if (time.count() < kMaxTime / 100) ++depth;
-    }
-}
-
 
 
 /* -------------------------------------------------- UI --------------------------------------------------*/
@@ -2204,10 +2334,11 @@ const char character[8] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
 const int reverse_int[8] = { 8, 7, 6, 5, 4, 3, 2, 1 };
 
 
+
 // Play Bot
 void PlayBot();
 
-void BotMove(Board& b, int& evaluation, U64& move, const bool kSide, const double kMaxSearchTime);
+void BotMove(Board& b, int& evaluation, U64& move, const bool kSide, const double kMaxSearchTime, std::unordered_map<U64, U64>& hash);
 void UserMove(int& ply, Board& b, U64& move, const bool kSide, bool& back);
 void SaveState(const int kPly, Board& b, const int kEval, const U64 move);
 void LoadState(const int kPly, Board& b, int& evaluation, U64& move);
@@ -2278,6 +2409,9 @@ void PlayBot() {
 	double max_search_time;
 	InitAll(b, player_side, max_search_time);
 
+	// Initialize Transposition Table
+	std::unordered_map<U64, U64> hash;
+
 	InputFen(b);
 	bool raw_side = GET_UTILITY_SIDE(b.bb[0]);
 
@@ -2311,11 +2445,10 @@ void PlayBot() {
 
 		if (player_turn[ply]) {
 			UserMove(ply, b, move, side[ply], back);
-			system("cls");
 		}
 
 		else {
-			BotMove(b, evaluation, move, side[ply], max_search_time);
+			BotMove(b, evaluation, move, side[ply], max_search_time, hash);
 			PrintState(b, evaluation, move, ply);
 		}
 
@@ -2327,9 +2460,9 @@ void PlayBot() {
 	}
 }
 
-void BotMove(Board& b, int& eval, U64& move, const bool kSide, const double kMaxSearchTime) {
+void BotMove(Board& b, int& eval, U64& move, const bool kSide, const double kMaxSearchTime, std::unordered_map<U64, U64>& hash) {
 
-	IterativeDeepening(b, kSide, kMaxSearchTime, eval, move, (BitCount(W_BLOCK(b.bb) | B_BLOCK(b.bb)) < 15));
+	IterativeDeepening(b, kSide, kMaxSearchTime, eval, move, (BitCount(W_BLOCK(b.bb) | B_BLOCK(b.bb)) < 15), hash);
 	MakeMove(b.bb, move, kSide);
 }
 
@@ -2562,9 +2695,7 @@ void PrintBoard(const char kBoard[64], const int kSource, const int kTarget) {
 		for (int y = 0; y < 8; ++y) {
 			if (!y) {
 
-				SetConsoleTextAttribute(hConsole, 11);
 				cout << "  " << 8 - x << "  ";
-				SetConsoleTextAttribute(hConsole, 15);
 			}
 
 			int square = x * 8 + y;
@@ -2572,12 +2703,10 @@ void PrintBoard(const char kBoard[64], const int kSource, const int kTarget) {
 			if (square == kSource || square == kTarget) {
 
 				cout << "   ";
-				square == kSource ? SetConsoleTextAttribute(hConsole, 47) : SetConsoleTextAttribute(hConsole, 79);
 
 				if (!kBoard[square]) cout << " ";
 				else cout << kBoard[square];
 
-				SetConsoleTextAttribute(hConsole, 15);
 			}
 			else if (kBoard[square]) cout << "   " << kBoard[square];
 			else cout << "    ";
@@ -2585,9 +2714,7 @@ void PrintBoard(const char kBoard[64], const int kSource, const int kTarget) {
 		cout << "\n\n";
 	}
 
-	SetConsoleTextAttribute(hConsole, 11);
 	cout << "\n        " << "A   B   C   D   E   F   G   H" << "\n";
-	SetConsoleTextAttribute(hConsole, 15);
 }
 void PrintState(Board& b, const int kEval, const U64 kNextMove, const int kPly) {
 
@@ -2613,14 +2740,10 @@ void PrintState(Board& b, const int kEval, const U64 kNextMove, const int kPly) 
 
 	cout << "\nPly: " << kPly;
 	cout << "\nMove: ";
-	SetConsoleTextAttribute(hConsole, 10);
 	cout << MoveToNotation(kNextMove) << "\n";
-	SetConsoleTextAttribute(hConsole, 15);
 
 	cout << "Evaluation: ";
-	SetConsoleTextAttribute(hConsole, 14);
 	cout << ((double)kEval) / 1000 << "\n\n";
-	SetConsoleTextAttribute(hConsole, 15);
 
 
 	// Fill Board
@@ -2775,6 +2898,7 @@ void PrintFen(Board& b, const bool kSide) {
 
 	cout << fen << "\n";
 }
+
 
 
 

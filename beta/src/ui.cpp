@@ -83,7 +83,6 @@ void PlayBot() {
 
 		if (player_turn[ply]) {
 			UserMove(ply, b, move, side[ply], back);
-			system("cls");
 		}
 
 		else {
