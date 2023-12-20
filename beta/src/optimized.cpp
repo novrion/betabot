@@ -85,24 +85,24 @@ struct Board {
 
 
 // Initialization
-void InitAll(Board& b, bool& kSide, double& max_search_time);
-bool InitSide();
-double InitMaxSearchTime();
+inline void InitAll(Board& b, bool& kSide, double& max_search_time);
+inline bool InitSide();
+inline double InitMaxSearchTime();
 
 // Hash
-U64 Zobrist(Board& b, const bool kSide);
-unsigned XorShift32(unsigned& x);
-U64 XorShift64(unsigned& x);
-void InitTransposition();
+inline U64 Zobrist(Board& b, const bool kSide);
+inline unsigned XorShift32(unsigned& x);
+inline U64 XorShift64(unsigned& x);
+inline void InitTransposition();
 
 // Moves
-void MakeMove(U64 bb[13], const U64 kMove, const bool kSide);
-void GetMoveTargets(Board& b, U64 moves[100], const bool kSide);
-bool InCheck(Board& b, const bool kSide);
+inline void MakeMove(U64 bb[13], const U64 kMove, const bool kSide);
+inline void GetMoveTargets(Board& b, U64 moves[100], const bool kSide);
+inline bool InCheck(Board& b, const bool kSide);
 
 // Bit Manipulation
-int BitCount(U64 x);
-int PopLsb(U64& b);
+inline int BitCount(U64 x);
+inline int PopLsb(U64& b);
 
 unsigned key = 9876789;
 U64 piece_hash[13][64];
@@ -113,7 +113,7 @@ U64 side_hash;
 
 
 // Moves
-void MakeMove(U64 bb[13], const U64 kMove, const bool kSide) {
+inline void MakeMove(U64 bb[13], const U64 kMove, const bool kSide) {
 
 	int source = GET_MOVE_SOURCE(kMove);
 	int target = GET_MOVE_TARGET(kMove);
@@ -227,7 +227,7 @@ void MakeMove(U64 bb[13], const U64 kMove, const bool kSide) {
 	}
 }
 
-void GetMoveTargets(Board& b, U64 moves[100], const bool kSide) {
+inline void GetMoveTargets(Board& b, U64 moves[100], const bool kSide) {
 
     if (kSide) {
 
@@ -270,7 +270,7 @@ void GetMoveTargets(Board& b, U64 moves[100], const bool kSide) {
     }
 }
 
-bool InCheck(Board& b, const bool kSide) {
+inline bool InCheck(Board& b, const bool kSide) {
 
     const U64 kWBlock = W_BLOCK(b.bb);
     const U64 kBBlock = B_BLOCK(b.bb);
@@ -421,7 +421,7 @@ bool InCheck(Board& b, const bool kSide) {
 
 
 // Bit Manipulation
-int BitCount(U64 x) {
+inline int BitCount(U64 x) {
 
 	x -= (x >> 1) & 0x5555555555555555;
 	x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333);
@@ -429,7 +429,7 @@ int BitCount(U64 x) {
 
 	return ((x * 0x0101010101010101) >> 56);
 }
-int PopLsb(U64& b) {
+inline int PopLsb(U64& b) {
 
 	const int kS = __builtin_ctzll(b);
 	b &= b - 1;
@@ -438,7 +438,7 @@ int PopLsb(U64& b) {
 }
 
 
-void InitAll(Board& b, bool& kSide, double& max_search_time) {
+inline void InitAll(Board& b, bool& kSide, double& max_search_time) {
 
 	// (utility)
 	b.bb[0] = 960ULL;
@@ -468,7 +468,7 @@ void InitAll(Board& b, bool& kSide, double& max_search_time) {
 
 	InitTransposition();
 }
-bool InitSide() {
+inline bool InitSide() {
 
 	char ch;
 
@@ -477,7 +477,7 @@ bool InitSide() {
 
 	return ((ch == 'W' || ch == 'w') ? true : false);
 }
-double InitMaxSearchTime() {
+inline double InitMaxSearchTime() {
 
 	double max_search_time;
 
@@ -524,7 +524,7 @@ inline void InitTransposition() {
 }
 
 
-U64 Zobrist(Board& b, const bool kSide) {
+inline U64 Zobrist(Board& b, const bool kSide) {
 
     U64 ret = 0;
 
@@ -2145,7 +2145,7 @@ const int kMVVLVA[13][13] = {
 
 
 
-void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame, std::unordered_map<U64, U64>& hash);
+inline void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame, std::unordered_map<U64, U64>& hash);
 
 inline std::pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSide, const double kMaxTime, std::unordered_map<U64, U64>& hash);
 inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int beta, std::unordered_map<U64, U64>& hash);
@@ -2155,7 +2155,7 @@ bool end_game = false;
 
 
 
-void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame, std::unordered_map<U64, U64>& hash) {
+inline void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& evaluation_out, U64& move_out, const bool kEndGame, std::unordered_map<U64, U64>& hash) {
 
     end_game = kEndGame;
 
@@ -2895,6 +2895,11 @@ void PrintFen(Board& b, const bool kSide) {
 		fen += en_passant_notation;
 	}
 	else fen += '-';
+
+
+	// temp
+	fen += " - -";
+
 
 	cout << fen << "\n";
 }
