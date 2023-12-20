@@ -542,5 +542,10 @@ void PrintFen(Board& b, const bool kSide) {
 	}
 	else fen += '-';
 
+
+	// temp
+	fen += " - -";
+
+
 	cout << fen << "\n";
 }

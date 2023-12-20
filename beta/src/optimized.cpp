@@ -2772,6 +2772,11 @@ void PrintFen(Board& b, const bool kSide) {
 		fen += en_passant_notation;
 	}
 	else fen += '-';
+	
+	
+	// temp
+	fen += " - -";
+
 
 	cout << fen << "\n";
 }
