@@ -13,7 +13,7 @@ Castle: move the king to the square it stands after castling
 **Download:**  
 Click "Releases" (to the right) and download source code and/or executables by clicking on them  
 Note that most systems will warn that the executables may be malware  
-This is not a virus, most systems warn the user when running any executable that isn't "trusted" or "validated"  
+This is not a virus, most systems warn the user when running any executable that isn't trusted
 
 **Note:** The executables may not work on all systems. If they do not work, they have to be compiled by using the bash script ".compile.sh".
 
