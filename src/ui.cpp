@@ -41,6 +41,8 @@ bool player_turn[400];
 
 void PlayBot() {
 
+	clear_ui();
+
 	// Initialize Board && Side
 	Board b;
 	bool player_side;
@@ -50,6 +52,7 @@ void PlayBot() {
 	InputFen(b);
 	bool raw_side = GET_UTILITY_SIDE(b.bb[0]);
 
+	PrintTutorial();
 
 	// Initialize Saves
 	if (raw_side) side[0] = true;
@@ -80,7 +83,6 @@ void PlayBot() {
 
 		if (player_turn[ply]) {
 			UserMove(ply, b, move, side[ply], back);
-			system("cls");
 		}
 
 		else {
@@ -88,7 +90,11 @@ void PlayBot() {
 			PrintState(b, evaluation, move, ply);
 		}
 
-		if (back) { ply -= 2; LoadState(ply, b, evaluation, move); }
+		if (back) {
+			ply -= 2;
+			LoadState(ply, b, evaluation, move);
+			PrintState(b, evaluations[ply], moves[ply], ply);
+		}
 		else {
 			++ply;
 			SaveState(ply, b, evaluation, move);
@@ -106,7 +112,7 @@ void UserMove(int& ply, Board& b, U64& move, const bool kSide, bool& back) {
 
 	while (true) {
 
-		std::cout << "Write 'help' for the command list\n";
+		std::cout << ": ";
 
 		std::string user_input;
 		std::cin >> user_input;
@@ -185,6 +191,14 @@ void LoadState(const int kPly, Board& b, int& eval, U64& move) {
 	b = boards[kPly];
 	eval = evaluations[kPly];
 	move = moves[kPly];
+}
+
+
+// Tutorial
+void PrintTutorial() {
+	cout << "---------------------------------\n";
+	cout << "Write 'help' for the command list\n";
+	cout << "---------------------------------\n";
 }
 
 
@@ -325,40 +339,96 @@ void InputFen(Board& b) {
 
 
 // Interface
+void clear_ui() {
+        fflush(stdout);
+
+        #ifndef WINDOWS
+        system("clear");
+        #else
+        system("cls");
+        #endif // WINDOWS
+}
+
+
+#ifndef WINDOWS
 void PrintBoard(const char kBoard[64], const int kSource, const int kTarget) {
 
-	for (int x = 0; x < 8; ++x) {
-		for (int y = 0; y < 8; ++y) {
-			if (!y) {
+        cout << RESET << "     " << BOARD_BG << "                                   " << RESET << "\n";
 
-				SetConsoleTextAttribute(hConsole, 11);
-				cout << "  " << 8 - x << "  ";
-				SetConsoleTextAttribute(hConsole, 15);
-			}
+        for (int x = 0; x < 8; ++x) {
+                for (int y = 0; y < 8; ++y) {
+                        if (!y) {
+                                cout << RESET << "  " << 8 - x << "  ";
+                        }
 
-			int square = x * 8 + y;
+                        int square = x * 8 + y;
 
-			if (square == kSource || square == kTarget) {
+                        if (square == kSource || square == kTarget) {
 
-				cout << "   ";
-				square == kSource ? SetConsoleTextAttribute(hConsole, 47) : SetConsoleTextAttribute(hConsole, 79);
+                                cout << "   ";
 
-				if (!kBoard[square]) cout << " ";
-				else cout << kBoard[square];
+                                if (square == kSource) cout << RED_FG_BOARD_BG;
+                                else cout << GREEN_FG_BOARD_BG;
 
-				SetConsoleTextAttribute(hConsole, 15);
-			}
-			else if (kBoard[square]) cout << "   " << kBoard[square];
-			else cout << "    ";
-		}
-		cout << "\n\n";
-	}
+                                if (!kBoard[square]) cout << ".";
+                                else cout << kBoard[square];
+                        }
+                        else if (kBoard[square]) {
+                                if (kBoard[square] < 'a') cout << WHITE_FG_BOARD_BG << "   " << kBoard[square];
+                                else cout << BLACK_FG_BOARD_BG << "   " << kBoard[square];
+                        }
+                        else cout << BOARD_BG << "    ";
+                }
+                cout << BOARD_BG << "   " << RESET << "\n" << "     " << BOARD_BG << "                                   " << RESET << "\n";
+        }
 
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "\n        " << "A   B   C   D   E   F   G   H" << "\n";
-	SetConsoleTextAttribute(hConsole, 15);
+        cout << RESET;
+        cout << "\n        " << "A   B   C   D   E   F   G   H" << "\n";
+
+	fflush(stdout);
 }
+
+#else
+
+void PrintBoard(const char kBoard[64], const int kSource, const int kTarget) {
+
+        for (int x = 0; x < 8; ++x) {
+                for (int y = 0; y < 8; ++y) {
+                        if (!y) {
+
+                                SetConsoleTextAttribute(hConsole, 11);
+                                cout << "  " << 8 - x << "  ";
+                                SetConsoleTextAttribute(hConsole, 15);
+                        }
+
+                        int square = x * 8 + y;
+
+                        if (square == kSource || square == kTarget) {
+
+                                cout << "   ";
+                                square == kSource ? SetConsoleTextAttribute(hConsole, 47) : SetConsoleTextAttribute(hConsole, 79);
+
+                                if (!kBoard[square]) cout << " ";
+                                else cout << kBoard[square];
+
+                                SetConsoleTextAttribute(hConsole, 15);
+                        }
+                        else if (kBoard[square]) cout << "   " << kBoard[square];
+                        else cout << "    ";
+                }
+                cout << "\n\n";
+        }
+
+        SetConsoleTextAttribute(hConsole, 11);
+        cout << "\n        " << "A   B   C   D   E   F   G   H" << "\n";
+        SetConsoleTextAttribute(hConsole, 15);
+}
+
+#endif // WINDOWS
+
 void PrintState(Board& b, const int kEval, const U64 kNextMove, const int kPly) {
+
+	clear_ui();
 
 	map<int, char> piece_index = {
 		{1, 'P'},
@@ -380,16 +450,18 @@ void PrintState(Board& b, const int kEval, const U64 kNextMove, const int kPly) 
 	//U64 temp;
 	//int square;
 
-	cout << "\nPly: " << kPly;
-	cout << "\nMove: ";
-	SetConsoleTextAttribute(hConsole, 10);
-	cout << MoveToNotation(kNextMove) << "\n";
-	SetConsoleTextAttribute(hConsole, 15);
+	PrintFen(b, player_turn[kPly + 1]);
+        cout << "Ply:        " << kPly   << "\n";
+        cout << "Evaluation: ";
+        cout << ((double)kEval) / 1000 << "\n";
 
-	cout << "Evaluation: ";
-	SetConsoleTextAttribute(hConsole, 14);
-	cout << ((double)kEval) / 1000 << "\n\n";
-	SetConsoleTextAttribute(hConsole, 15);
+        #ifndef WINDOWS
+        cout << BLUE_FG << MoveToNotation(kNextMove) << RESET << "\n\n";
+        #else
+        SetConsoleTextAttribute(hConsole, 10);
+        cout << MoveToNotation(kNextMove) << "\n";
+        SetConsoleTextAttribute(hConsole, 15);
+        #endif // WINDOWS
 
 
 	// Fill Board
@@ -410,12 +482,9 @@ void PrintState(Board& b, const int kEval, const U64 kNextMove, const int kPly) 
 
 	// Print Board
 	PrintBoard(board, GET_MOVE_SOURCE(kNextMove), GET_MOVE_TARGET(kNextMove));
-
-
-	// Print State
-	cout << "\nFEN: ";
-	PrintFen(b, player_turn[kPly + 1]);
 	cout << "\n";
+
+	
 
 	// cout << "\nState: ";
 	// cout << (b.side ? 'b' : 'w') << "/";

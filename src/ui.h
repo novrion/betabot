@@ -19,12 +19,15 @@ void UserMove(int& ply, Board& b, U64& move, const bool kSide, bool& back);
 void SaveState(const int kPly, Board& b, const int kEval, const U64 move);
 void LoadState(const int kPly, Board& b, int& evaluation, U64& move);
 
+// Tutorial
+void PrintTutorial();
 
 // User Interaction
 std::pair<int, int> UserInputMove();
 void InputFen(Board& b);
 
 // Interface
+void clear_ui();
 void PrintBoard(const char kBoard[64], const int kSource, const int kTarget);
 void PrintState(Board& b, const int kEval, const U64 kNextMove, const int kPly);
 

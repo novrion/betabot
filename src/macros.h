@@ -1,3 +1,5 @@
+#define WINDOWS
+
 #pragma once
 
 #include <iostream>
@@ -6,10 +8,38 @@
 #include <chrono>
 #include <map>
 
-#include <windows.h>
 
+// Interface Colors
+// #define NO_COLORS
+#ifndef WINDOWS
+
+# ifndef NO_COLORS
+#define RESET             "\033[0m"
+#define BOARD_BG          "\033[100m"
+#define WHITE_FG_BOARD_BG "\033[37;100m"
+#define BLACK_FG_BOARD_BG "\033[30;100m"
+#define RED_FG_BOARD_BG   "\033[31;100m"
+#define GREEN_FG_BOARD_BG "\033[32;100m"
+#define ORANGE_FG         "\033[33m"
+#define BLUE_FG           "\033[36m"
+#else
+#define RESET             ""
+#define BOARD_BG          ""
+#define WHITE_FG_BOARD_BG ""
+#define BLACK_FG_BOARD_BG ""
+#define RED_FG_BOARD_BG   ""
+#define GREEN_FG_BOARD_BG ""
+#define ORANGE_FG         ""
+#define BLUE_FG           ""
+#endif // NO_COLORS
+
+#else
+
+#include "windows.h"
 
 const HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+#endif // WINDOWS
 
 
 #define U64 unsigned long long

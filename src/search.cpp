@@ -14,6 +14,7 @@ void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& 
 
     pair<int, U64> search_data;
 
+    int ui_count = 0;
     for (int depth = 1; depth < 256; ++depth) {
 
         duration<double> time;
@@ -26,22 +27,28 @@ void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& 
 
         if (!(search_data.second == kTimeFlag)) {
 
+	    if (ui_count++ % 3 == 0) cout << "\n";
+
             evaluation_out = search_data.first;
             move_out = search_data.second;
 
-
+            #ifndef WINDOWS
             cout << depth << " ";
-
+            cout << ORANGE_FG << "[ " << RESET;
+            cout << time.count();
+            cout << ORANGE_FG << " ]   " << RESET;
+            #else
+            cout << depth << " ";
             SetConsoleTextAttribute(hConsole, 14);
             cout << "[ ";
-
             SetConsoleTextAttribute(hConsole, 12);
             cout << time.count();
-
             SetConsoleTextAttribute(hConsole, 14);
             cout << " ]   ";
-
             SetConsoleTextAttribute(hConsole, 15);
+            #endif // WINDOWS
+
+            fflush(stdout);
         }
 
 
