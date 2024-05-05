@@ -1,4 +1,6 @@
-#pragma once
+#ifndef UI_H
+#define UI_H
+
 
 #include "search.h"
 
@@ -11,14 +13,6 @@ const int reverse_int[8] = { 8, 7, 6, 5, 4, 3, 2, 1 };
 
 
 
-// Play Bot
-void PlayBot();
-
-void BotMove(Board& b, int& evaluation, U64& move, const bool kSide, const double kMaxSearchTime);
-void UserMove(int& ply, Board& b, U64& move, const bool kSide, bool& back);
-void SaveState(const int kPly, Board& b, const int kEval, const U64 move);
-void LoadState(const int kPly, Board& b, int& evaluation, U64& move);
-
 // Tutorial
 void PrintTutorial();
 
@@ -29,16 +23,15 @@ void InputFen(Board& b);
 // Interface
 void clear_ui();
 void PrintBoard(const char kBoard[64], const int kSource, const int kTarget);
-void PrintState(Board& b, const int kEval, const U64 kNextMove, const int kPly);
+void PrintState(Board& b, const int kEval, const U64 kNextMove, const int kPly, bool player_turn[400]);
 
 // Translation
-U64 TranslateToMove(Board& b, const int kSource, const int kTarget, const bool kSide);
 std::string MoveToNotation(const U64 kMove);
 int StringToSquare(const std::string kStr);
-
-// Verify Move
-bool VerifyMove(Board& b, const U64 KMove, const bool kSide);
 
 // FEN
 void ParseFen(Board& b, std::string& fen);
 void PrintFen(Board& b, const bool kSide);
+
+
+#endif // UI_H

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef EVAL_H
+#define EVAL_H
+
 
 #include "macros.h"
 #include "bb.h"
@@ -185,3 +187,6 @@ int Evaluate(const U64 kBB[13]);
 
 inline int MaterialScore(const U64 kBB[13]);
 inline int PositionScore(const U64 kBB[13]);
+
+
+#endif // EVAL_H

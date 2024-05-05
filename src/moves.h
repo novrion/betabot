@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MOVES_H
+#define MOVES_H
+
 
 #include "macros.h"
 #include "bb.h"
@@ -67,3 +69,6 @@ inline void BBishopCaptures(const int kSquare, const U64 kWBlock, const U64 kBBl
 inline void BRookCaptures(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100]);
 inline void BQueenCaptures(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100]);
 inline void BKingCaptures(const int kSquare, const U64 kWBlock, const U64 kBBlock, U64 moves[100]);
+
+
+#endif // MOVES_H

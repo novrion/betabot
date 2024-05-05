@@ -1,10 +1,10 @@
-#include "ui.h"
+#include "beta.h"
 
 
 
 int main() {
-
 	PlayBot();
+
 
 
 

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SEARCH_H
+#define SEARCH_H
+
 
 #include "macros.h"
 #include "moves.h"
@@ -31,3 +33,6 @@ void IterativeDeepening(Board& b, const bool kSide, const double kMaxTime, int& 
 inline std::pair<int, U64> LayerOneNegaMax(Board& b, const int kDepth, const bool kSide, const double kMaxTime);
 inline int NegaMax(Board& b, const int kDepth, const bool kSide, int alpha, int beta);
 inline int Quiescence(Board& b, const int kDepth, const bool kSide, int alpha, int beta);
+
+
+#endif // SEARCH_H
